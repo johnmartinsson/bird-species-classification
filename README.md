@@ -2,19 +2,20 @@
 Using convolutional neural networks to build and train a bird species classifier on bird song data with corresponding species labels.
 
 # Libraries
-- [keras](http://keras.io/)
-- [scipy](https://www.scipy.org/)
-- [numpy](http://www.numpy.org/)
+- [keras](http://keras.io/),
+- [scipy](https://www.scipy.org/),
+- [numpy](http://www.numpy.org/).
 
 # Challenges
 This is a collection of bird species classification challenges that, has been, and is carried out around the world.
 
 ## Bird Audio Detection Challenge
-- [Bird Audio Detection Challenge](http://machine-listening.eecs.qmul.ac.uk/bird-audio-detection-challenge/)
-- [Survey paper](https://arxiv.org/pdf/1608.03417v1.pdf) and [Discussion](https://groups.google.com/forum/#!forum/bird-detection)
+- [Bird Audio Detection Challenge](http://machine-listening.eecs.qmul.ac.uk/bird-audio-detection-challenge/),
+- [Survey Paper](https://arxiv.org/pdf/1608.03417v1.pdf) and [Discussion](https://groups.google.com/forum/#!forum/bird-detection),
+- [Blog Article](http://machine-listening.eecs.qmul.ac.uk/2016/10/bird-audio-detection-baseline-generalisation/): Generalization in Bird Audio Detection.
 
 ## MLSP 2013 Bird Classification Challenge
-- [MLSP 2013 Bird Classification Challenge](https://www.kaggle.com/c/mlsp-2013-birds/)
+- [MLSP 2013 Bird Classification Challenge](https://www.kaggle.com/c/mlsp-2013-birds/).
 
 ### Solutions and Source Code
 Original compilation source: [xuewei4d](https://github.com/xuewei4d/KaggleSolutions)
@@ -29,4 +30,4 @@ Original compilation source: [xuewei4d](https://github.com/xuewei4d/KaggleSoluti
 This is a collection of applications which use this technology.
 
 ## Warbler
-- [Warbler](https://warblr.net/)
+- [Warbler](https://warblr.net/).
