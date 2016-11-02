@@ -11,6 +11,7 @@ This is a collection of bird species classification challenges that, has been, a
 
 ## Bird Audio Detection Challenge
 - [Bird Audio Detection Challenge](http://machine-listening.eecs.qmul.ac.uk/bird-audio-detection-challenge/)
+- [Survey paper](https://arxiv.org/pdf/1608.03417v1.pdf) and [Discussion](https://groups.google.com/forum/#!forum/bird-detection)
 
 ## MLSP 2013 Bird Classification Challenge
 - [MLSP 2013 Bird Classification Challenge](https://www.kaggle.com/c/mlsp-2013-birds/)
