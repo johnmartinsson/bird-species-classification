@@ -6,6 +6,9 @@ Using convolutional neural networks to build and train a bird species classifier
 - [scipy](https://www.scipy.org/),
 - [numpy](http://www.numpy.org/).
 
+# Evaluation Methods
+- [Mean Average Precision](https://github.com/benhamner/Metrics/blob/master/Python/ml_metrics/average_precision.py)
+
 # Challenges
 This is a collection of bird species classification challenges that, has been, and is carried out around the world.
 
