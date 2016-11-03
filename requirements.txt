@@ -1,3 +1,5 @@
 keras
 scipy
 numpy
+scikit-learn
+nose
