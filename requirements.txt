@@ -3,3 +3,4 @@ scipy
 numpy
 scikit-learn
 nose
+matplotlib
