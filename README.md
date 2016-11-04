@@ -2,15 +2,25 @@
 Using convolutional neural networks to build and train a bird species classifier on bird song data with corresponding species labels.
 
 # Libraries
+The following libraries are used in this method:
+
 - [keras](http://keras.io/),
 - [scipy](https://www.scipy.org/),
-- [numpy](http://www.numpy.org/).
+- [numpy](http://www.numpy.org/),
+- [scikit-learn](http://scikit-learn.org/).
 
 # Evaluation Methods
 - [Mean Average Precision](https://github.com/benhamner/Metrics/blob/master/Python/ml_metrics/average_precision.py)
 
 # Challenges
 This is a collection of bird species classification challenges that, has been, and is carried out around the world.
+
+## BirdCLEF: an audio record-based bird identification task
+- [BirdCLEF 2016](http://www.imageclef.org/lifeclef/2016/bird)
+- [BirdCLEF 2017](http://www.imageclef.org/lifeclef/2017/bird)
+
+### Solutions and Source Code
+- Rank 1 BirdCLEF 2016 [solution description](http://ceur-ws.org/Vol-1609/16090547.pdf)
 
 ## Bird Audio Detection Challenge
 - [Bird Audio Detection Challenge](http://machine-listening.eecs.qmul.ac.uk/bird-audio-detection-challenge/),
