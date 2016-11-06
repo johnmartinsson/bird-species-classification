@@ -1,3 +1,4 @@
+import json
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, Flatten
 from keras.layers import Convolution2D, MaxPooling2D
@@ -7,7 +8,7 @@ model = Sequential()
 
 # conv (64 5x5 kernels, stride size 2x1)
 # TODO : 1 channel?
-model.add(Convolution2D(64, 5, 5, input_shape=(1, 128, 256), activation="relu", subsample=(2, 1)))
+model.add(Convolution2D(64, 5, 5, input_shape=(3, 128, 256), activation="relu", subsample=(2, 1)))
 # max pooling (2x2 kernels, stride size 2x2)
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
@@ -31,9 +32,13 @@ model.add(Convolution2D(256, 3, 3, activation="relu", subsample=(1, 1)))
 # max pooling (2x2 kernels, stride size 2x2)
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
+# flatten 3D feature maps to 1D feature vectors
+model.add(Flatten())
+
 # dense (1024 units)
-model.add(Dense(1024, input_shape=()))
+model.add(Dense(1024))
 # soft max (19 units)
 model.add(Dense(19, activation='softmax'))
 
-# TODO: compile model
+with open('cuberun.json', 'w') as outfile:
+    json.dump(mode.to_json(), outfile)

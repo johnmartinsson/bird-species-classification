@@ -4,3 +4,5 @@ numpy
 scikit-learn
 nose
 matplotlib
+pillow
+h5py
