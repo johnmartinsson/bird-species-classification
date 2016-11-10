@@ -1,6 +1,32 @@
 # Bird Species Classification
 Using convolutional neural networks to build and train a bird species classifier on bird song data with corresponding species labels.
 
+## Setup
+```bash
+git clone https://github.com/johnmartinsson/bird-species-classification
+virtualenv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Train
+```bash
+cd bird
+python train.py --model="cuberun" --train_data="../datasets/mlsp2013/train" --validation_data="../datasets/mlsp2013/validation"
+```
+
+## Test
+```bash
+cd bird
+python test.py --dataset="../datasets/mlsp2013/test" --model="cuberun" --weights="../weights/<weight_file>.h5
+```
+
+## Predict
+```bash
+cd bird
+python predict.py --weights="../weights/<weight_file>.h5 <path_to_wav_file>
+```
+
 # Libraries
 The following libraries are used in this method:
 
