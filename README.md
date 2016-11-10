@@ -10,6 +10,8 @@ pip install -r requirements.txt
 ```
 
 ## Train
+The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
+
 ```bash
 cd bird
 python train.py --model="cuberun" --train_data="../datasets/mlsp2013/train" --validation_data="../datasets/mlsp2013/validation"
