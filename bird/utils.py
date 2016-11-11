@@ -72,7 +72,7 @@ def wave_to_spectrogram2(S):
     return np.array(Spectrogram)
 
 def show_spectrogram(Sxx):
-    plt.pcolor(Sxx)
+    plt.pcolormesh(Sxx)
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [s]')
     plt.show()
