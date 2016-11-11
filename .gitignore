@@ -91,3 +91,4 @@ mlsp_contest_dataset/
 *.h5
 *.wav
 tutorial_data/
+datasets
