@@ -9,7 +9,8 @@ import glob
 import utils
 import numpy as np
 
-def load_data(data_filepath=None, file2labels_filepath=None, size=300, nb_classes=19):
+def load_data(data_filepath=None, file2labels_filepath=None, size=300,
+              nb_classes=10, image_shape=(32, 32)):
     if not os.path.isdir(data_filepath):
         raise ValueError("data filepath is invalid")
     if not os.path.isfile(file2labels_filepath):
@@ -44,7 +45,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300, nb_classe
         batch.append({'file_name':rand_data_file,
                       'labels':rand_data_file_labels})
 
-    spec_rows, spec_cols = 257, 624
+    spec_rows, spec_cols = image_shape
     X_train = np.array([]).reshape(0, spec_rows, spec_cols)
     Y_train = np.array([]).reshape(0, nb_classes)
     for sample in batch:
@@ -58,7 +59,8 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300, nb_classe
     X_train = X_train.reshape(X_train.shape[0], spec_rows, spec_cols, 1)
     return X_train, Y_train
 
-def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=19):
+def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
+                 image_shape=(32, 32)):
     if not os.path.isdir(data_filepath):
         raise ValueError("data filepath is invalid")
     if not os.path.isfile(file2labels_filepath):
@@ -93,7 +95,7 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=19):
         batch.append({'file_name':data_file,
                       'labels':data_file_labels})
 
-    spec_rows, spec_cols = 257, 624
+    spec_rows, spec_cols = image_shape
     X_train = np.array([]).reshape(0, spec_rows, spec_cols)
     Y_train = np.array([]).reshape(0, nb_classes)
     for sample in batch:

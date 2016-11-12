@@ -5,7 +5,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import backend as K
 
-def CubeRun(nb_classes):
+def CubeRun(nb_classes, input_shape):
     """ Instantiate a CubeRun architecture
 
     # Arguments
@@ -16,10 +16,10 @@ def CubeRun(nb_classes):
     """
 
     # adapt input shape to the used backend
-    if K.image_dim_ordering() == 'th':
-        input_shape=(1, 257, 624)
-    else:
-        input_shape=(257, 624, 1)
+    #if K.image_dim_ordering() == 'th':
+        #input_shape=(1, image_rows, image_cols)
+    #else:
+        #input_shape=(image_rows, image_cols, 1)
 
     img_input = Input(shape=input_shape)
 
