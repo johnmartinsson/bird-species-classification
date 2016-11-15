@@ -10,7 +10,7 @@ import utils
 import numpy as np
 
 def load_data(data_filepath=None, file2labels_filepath=None, size=300,
-              nb_classes=10, image_shape=(32, 32)):
+              nb_classes=19, image_shape=(257, 624)):
     if not os.path.isdir(data_filepath):
         raise ValueError("data filepath is invalid")
     if not os.path.isfile(file2labels_filepath):
