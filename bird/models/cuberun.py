@@ -5,7 +5,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras import backend as K
 
-def CubeRun(nb_classes, input_shape):
+def CubeRun(nb_classes=19, input_shape=(257, 624, 1)):
     """ Instantiate a CubeRun architecture
 
     # Arguments
