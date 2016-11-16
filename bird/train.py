@@ -6,7 +6,7 @@ from time import localtime, strftime
 import loader
 
 # Settings
-nb_epoch = 60
+nb_epoch = 20
 nb_classes = 19
 #nb_classes = 2
 batch_size = 8
@@ -72,8 +72,8 @@ model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 #print("Validation class dict: ", validation_class_dict.class_indices)
 ############################################################################
 
-X_valid, Y_valid = loader.load_data(train_path, labels_path, size=100,
-                                    nb_classes=nb_classes, image_shape=(cols, rows))
+#X_valid, Y_valid = loader.load_data(train_path, labels_path, size=100,
+                                    #nb_classes=nb_classes, image_shape=(cols, rows))
 
 
 # Setup compile
@@ -95,9 +95,16 @@ model.compile(loss='binary_crossentropy',
 #for e in range(nb_epoch):
     #print("epoch %d" % e)
 print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-X_train, Y_train = loader.load_all_data(train_path, labels_path,
-                                        nb_classes=nb_classes,
-                                        image_shape=(cols, rows));
+X, Y, filenames = loader.load_all_data(train_path, labels_path,
+                            nb_classes=nb_classes,
+                            image_shape=(cols, rows));
+
+X_train = X[:230]
+Y_train = Y[:230]
+X_valid = X[230:]
+Y_valid = Y[230:]
+
+
 print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 print("X_train shape: ", X_train.shape)
 print("Y_train shape: ", Y_train.shape)
