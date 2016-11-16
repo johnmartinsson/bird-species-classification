@@ -84,7 +84,7 @@ def CubeRun(nb_classes, input_shape):
 
     # soft max layer
     x = Dense(nb_classes)(x)
-    x = Activation('softmax')(x)
+    x = Activation('sigmoid')(x)
     # soft max layer dropout
     #x = Dropout(0.4)(x)
 

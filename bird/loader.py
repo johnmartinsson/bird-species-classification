@@ -107,7 +107,7 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
         Y_train = np.concatenate((Y_train, np.array([y])), axis=0)
 
     X_train = X_train.reshape(X_train.shape[0], spec_rows, spec_cols, 1)
-    return X_train, Y_train
+    return X_train, Y_train, all_data_files
 
 def id_labels2binary_labels(labels, nb_classes):
     binary_labels = np.zeros(nb_classes)

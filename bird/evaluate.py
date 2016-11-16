@@ -20,7 +20,7 @@ def evaluate(model, data_filepath, file2labels_filepath):
     Y = model.predict(X_test, batch_size=batch_size, verbose=1)
     Y = np.round(Y)
     for (y, gt) in zip(Y, Y_test):
-        print("predicted: ", binary_to_id(y), "\t ground truth: ", binary_to_id(gt))
+        print("predicted: ", binary_to_id(y), "\t\t ground truth: ", binary_to_id(gt))
 
     #print("Evaluating ...")
     #scores = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1)

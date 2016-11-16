@@ -73,12 +73,12 @@ model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 ############################################################################
 
 X_valid, Y_valid = loader.load_data(train_path, labels_path, size=100,
-                                    nb_classes=19, image_shape=(cols, rows))
+                                    nb_classes=nb_classes, image_shape=(cols, rows))
 
 
 # Setup compile
 sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='categorical_crossentropy',
+model.compile(loss='binary_crossentropy',
               optimizer='adadelta',
               metrics=['accuracy'])
 
