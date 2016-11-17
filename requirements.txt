@@ -6,3 +6,4 @@ nose
 matplotlib
 pillow
 h5py
+scikit-image
