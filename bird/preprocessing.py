@@ -1,6 +1,7 @@
 import numpy as np
 import utils
 from skimage import morphology
+import skimage.filters as filters
 
 def extract_noise_part(spectrogram):
     """ Extract the noise part of a spectrogram
@@ -59,14 +60,25 @@ def compute_binary_mask(spectrogram, threshold):
         binary_mask : the binary mask
     """
     norm_spectrogram = normalize(spectrogram)
-    binary_structure = mark_cells_times_larger_than_median(norm_spectrogram, threshold)
+    binary_image = mark_cells_times_larger_than_median(norm_spectrogram, threshold)
 
-    n_hood = np.ones((4, 4))
-    binary_structure = morphology.binary_erosion(binary_structure, n_hood)
-    binary_structure = morphology.binary_dilation(binary_structure, n_hood)
+    utils.plot_matrix(binary_image, "Median Clipping")
+
+    # closing binary image (dilation followed by erosion)
+    binary_image = morphology.binary_closing(binary_image, selem=np.ones((4, 4)))
+    # dialate binary image
+    binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
+    utils.plot_matrix(binary_image, "Closing and Dilation")
+    # apply median filter
+    #binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
+    # remove small objects
+    binary_image = morphology.remove_small_objects(binary_image, min_size=32,
+                                                   connectivity=1)
+
+    utils.plot_matrix(binary_image, "Median Filter and Small Objects Removed")
 
     # TODO: transpose is O(n^2)
-    mask = np.array([np.max(col) for col in np.transpose(binary_structure)])
+    mask = np.array([np.max(col) for col in np.transpose(binary_image)])
     mask = smooth_mask(mask)
 
     return mask
