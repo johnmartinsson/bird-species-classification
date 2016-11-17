@@ -10,15 +10,6 @@ from matplotlib import pyplot as plt
 
 MLSP_DATA_PATH="/home/darksoox/gits/bird-species-classification/mlsp_contest_dataset/"
 
-def noise_mask(spectrogram):
-    print("noise_mask is undefined")
-
-def structure_mask(spectrogram):
-    print("structure_mask is undefined")
-
-def extract_signal(mask, spectrogram):
-    print("extract_signal is undefined")
-
 def play_wave_file(filename):
     if (not os.path.isfile(filename)):
         raise ValueError("File does not exist")
@@ -47,14 +38,14 @@ def read_wave_file(filename):
 
     return fs, x
 
-def wave_to_spectrogram(wave=np.array([]), fs=None, window=signal.hanning(512),
-                       nperseg=512, noverlap=256):
+def wave_to_spectrogram(wave=np.array([]), fs=None, nperseg=512, noverlap=384):
     """Given a wave form returns the spectrogram of the wave form.
 
     Keyword arguments:
     wave -- the wave form (default np.array([]))
     fs   -- the rate at which the wave form has been sampled
     """
+    window = signal.get_window('hanning', nperseg)
     return signal.spectrogram(wave, fs, window, nperseg, noverlap,
                               mode='magnitude')
 
@@ -71,8 +62,34 @@ def wave_to_spectrogram2(S):
 
     return np.array(Spectrogram)
 
-def show_spectrogram(Sxx):
-    plt.pcolormesh(Sxx)
+def plot_matrix(Sxx):
+    cmap = grayify_cmap('cubehelix_r')
+    #cmap = plt.cm.get_cmap('gist_rainbow')
+    plt.figure()
+    plt.pcolormesh(Sxx, cmap=cmap)
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [s]')
     plt.show()
+
+def plot_vector(x):
+    mesh = np.zeros((257, x.shape[0]))
+    for i in range(x.shape[0]):
+        mesh[256][i] = x[i] * 2500
+        mesh[255][i] = x[i] * 2500
+        mesh[254][i] = x[i] * 2500
+    plot_matrix(mesh)
+
+
+
+def grayify_cmap(cmap):
+    """Return a grayscale version of the colormap"""
+    cmap = plt.cm.get_cmap(cmap)
+    colors = cmap(np.arange(cmap.N))
+
+    # convert RGBA to perceived greyscale luminance
+    # cf. http://alienryderflex.com/hsp.html
+    RGB_weight = [0.299, 0.587, 0.114]
+    luminance = np.sqrt(np.dot(colors[:, :3] ** 2, RGB_weight))
+    colors[:, :3] = luminance[:, np.newaxis]
+
+    return cmap.from_list(cmap.name + "_grayscale", colors, cmap.N)
