@@ -9,6 +9,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+# Usage Instriction
+Note that these instructions can __not__ be followed right now, but they are rather here as a guidline of an interface that could be implemented.
+
 ## Train
 The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
 
