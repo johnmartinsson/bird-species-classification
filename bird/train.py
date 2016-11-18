@@ -8,15 +8,45 @@ import loader
 # Settings
 nb_epoch = 20
 nb_classes = 19
-#nb_classes = 2
 batch_size = 8
-input_shape = (257, 624, 1)
-#input_shape = (256, 256, 3)
-(cols, rows, dims) = input_shape
+input_shape = (257, 1247)
+(image_height, image_width) = input_shape
 train_path = "../datasets/mlsp2013/train";
 labels_path = "../datasets/mlsp2013/train/file2labels.csv";
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
+
+# Setup compile
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(loss='binary_crossentropy',
+              optimizer='adadelta',
+              metrics=['accuracy'])
+
+print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+# load the data
+X, Y, filenames = loader.load_all_data(train_path, labels_path,
+                            nb_classes=nb_classes,
+                            image_shape=(image_width, image_height));
+
+# split data into training and validation set
+X_train = X[:230]
+Y_train = Y[:230]
+X_valid = X[230:]
+Y_valid = Y[230:]
+
+print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print("X_train shape: ", X_train.shape)
+print("Y_train shape: ", Y_train.shape)
+
+# fit the model to training data
+model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
+      verbose=1, validation_data=(X_valid, Y_valid))
+print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+
+weight_file_path = "../weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
+model.save_weights(weight_file_path)
+print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print("The weights have been saved in: " + weight_file_path)
 
 #datagen = ImageDataGenerator(
     #featurewise_center=False, # Boolean. Set input mean to 0 over the dataset.
@@ -76,12 +106,6 @@ model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
                                     #nb_classes=nb_classes, image_shape=(cols, rows))
 
 
-# Setup compile
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='binary_crossentropy',
-              optimizer='adadelta',
-              metrics=['accuracy'])
-
 
 ############################################################################
 #model.fit_generator(
@@ -94,30 +118,3 @@ model.compile(loss='binary_crossentropy',
 
 #for e in range(nb_epoch):
     #print("epoch %d" % e)
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-X, Y, filenames = loader.load_all_data(train_path, labels_path,
-                            nb_classes=nb_classes,
-                            image_shape=(cols, rows));
-
-X_train = X[:230]
-Y_train = Y[:230]
-X_valid = X[230:]
-Y_valid = Y[230:]
-
-
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-print("X_train shape: ", X_train.shape)
-print("Y_train shape: ", Y_train.shape)
-    #datagen.fit(X_train)
-    #model.fit(X_train, Y_train, batch_size=16, nb_epoch=nb_epoch)
-model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
-      verbose=1, validation_data=(X_valid, Y_valid))
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-    #for X_batch, Y_batch in datagen.flow(X_train, Y_train, batch_size=16):
-        #loss = model.train(X_batch, Y_batch)
-        #print("Loss: ", loss)
-
-weight_file_path = "../weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
-model.save_weights(weight_file_path)
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-print("The weights have been saved in: " + weight_file_path)

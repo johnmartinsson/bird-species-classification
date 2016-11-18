@@ -10,7 +10,7 @@ import utils
 import numpy as np
 
 def load_data(data_filepath=None, file2labels_filepath=None, size=300,
-              nb_classes=19, image_shape=(257, 624)):
+              nb_classes=19, image_shape=(1247, 257)):
     if not os.path.isdir(data_filepath):
         raise ValueError("data filepath is invalid")
     if not os.path.isfile(file2labels_filepath):
@@ -45,7 +45,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
         batch.append({'file_name':rand_data_file,
                       'labels':rand_data_file_labels})
 
-    spec_rows, spec_cols = image_shape
+    spec_cols, spec_rows = image_shape
     X_train = np.array([]).reshape(0, spec_rows, spec_cols)
     Y_train = np.array([]).reshape(0, nb_classes)
     for sample in batch:
@@ -95,7 +95,7 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
         batch.append({'file_name':data_file,
                       'labels':data_file_labels})
 
-    spec_rows, spec_cols = image_shape
+    spec_cols, spec_rows = image_shape
     X_train = np.array([]).reshape(0, spec_rows, spec_cols)
     Y_train = np.array([]).reshape(0, nb_classes)
     for sample in batch:
