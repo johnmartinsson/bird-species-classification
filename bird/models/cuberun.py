@@ -9,7 +9,8 @@ def CubeRun(nb_classes, input_shape):
     """ Instantiate a CubeRun architecture
 
     # Arguments
-        nb_classes: the number of classification classes
+        nb_classes  : the number of classification classes
+        input_shape : the shape of the input layer (rows, columns)
 
     # Returns
         A Keras model instance
