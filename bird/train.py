@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
@@ -6,7 +7,7 @@ from time import localtime, strftime
 import loader
 
 # Settings
-nb_epoch = 20
+nb_epoch = 1
 nb_classes = 19
 batch_size = 8
 input_shape = (257, 1247)
