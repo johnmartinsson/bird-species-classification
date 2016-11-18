@@ -24,7 +24,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
             warnings.warn("There are multiple .csv files in dir: " + data_filepath)
 
     labels = {}
-    with open(file2labels_filepath, newline='') as csvfile:
+    with open(file2labels_filepath) as csvfile:
         file2labels = csv.reader(csvfile, delimiter=',')
         nb_files = 0
         for row in file2labels:
@@ -33,7 +33,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
                 labels[row[0]] = row[1:]
             else:
                 labels[row[0]] = []
-        #print("Number of files: ", nb_files)
+        #print "Number of files: ", nb_files
 
     batch = []
     for i in range(size):
@@ -74,7 +74,7 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
             warnings.warn("There are multiple .csv files in dir: " + data_filepath)
 
     labels = {}
-    with open(file2labels_filepath, newline='') as csvfile:
+    with open(file2labels_filepath) as csvfile:
         file2labels = csv.reader(csvfile, delimiter=',')
         nb_files = 0
         for row in file2labels:

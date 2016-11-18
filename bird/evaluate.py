@@ -16,13 +16,13 @@ def evaluate(model, data_filepath, file2labels_filepath):
                                             nb_classes=nb_classes,
                                             image_shape=image_shape)
 
-    print("Predicting ...")
+    print "Predicting ..."
     Y = model.predict(X_test, batch_size=batch_size, verbose=1)
     Y = np.round(Y)
-    print("| Predicted | Ground Truth |")
-    print("|-----------|--------------|")
+    print "| Predicted | Ground Truth |"
+    print "|-----------|--------------|"
     for (y, gt) in zip(Y, Y_test):
-        print("| ", binary_to_id(y), " | ", binary_to_id(gt), " |")
+        print "| ", binary_to_id(y), " | ", binary_to_id(gt), " |"
 
     #print("Evaluating ...")
     #scores = model.evaluate(X_test, Y_test, batch_size=batch_size, verbose=1)

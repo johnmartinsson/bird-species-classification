@@ -23,7 +23,7 @@ model.compile(loss='binary_crossentropy',
               optimizer='adadelta',
               metrics=['accuracy'])
 
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
 # load the data
 X, Y, filenames = loader.load_all_data(train_path, labels_path,
                             nb_classes=nb_classes,
@@ -35,19 +35,19 @@ Y_train = Y[:230]
 X_valid = X[230:]
 Y_valid = Y[230:]
 
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-print("X_train shape: ", X_train.shape)
-print("Y_train shape: ", Y_train.shape)
+print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+print "X_train shape: ", X_train.shape
+print "Y_train shape: ", Y_train.shape
 
 # fit the model to training data
 model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
       verbose=1, validation_data=(X_valid, Y_valid))
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
 
 weight_file_path = "../weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
 model.save_weights(weight_file_path)
-print(strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-print("The weights have been saved in: " + weight_file_path)
+print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+print "The weights have been saved in: " + weight_file_path
 
 #datagen = ImageDataGenerator(
     #featurewise_center=False, # Boolean. Set input mean to 0 over the dataset.
@@ -99,8 +99,8 @@ print("The weights have been saved in: " + weight_file_path)
         ##classes=['cats', 'dogs'],
         #class_mode='categorical')
 
-#print("Training class dict: ", training_class_dict.class_indices)
-#print("Validation class dict: ", validation_class_dict.class_indices)
+#print "Training class dict: ", training_class_dict.class_indices
+#print "Validation class dict: ", validation_class_dict.class_indices
 ############################################################################
 
 #X_valid, Y_valid = loader.load_data(train_path, labels_path, size=100,
@@ -118,4 +118,4 @@ print("The weights have been saved in: " + weight_file_path)
 ############################################################################
 
 #for e in range(nb_epoch):
-    #print("epoch %d" % e)
+    #print "epoch %d" % e

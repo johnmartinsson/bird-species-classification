@@ -36,7 +36,7 @@ def play_wave_file(filename):
         if (sys.platform == "linux" or sys.playform == "linux2"):
             subprocess.call(["aplay", filename])
         else:
-            print("Platform not supported")
+            print "Platform not supported"
 
 def read_wave_file(filename):
     """ Read a wave file from disk
