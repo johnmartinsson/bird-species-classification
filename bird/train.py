@@ -7,13 +7,14 @@ from time import localtime, strftime
 import loader
 
 # Settings
-nb_epoch = 1
+nb_epoch = 20
 nb_classes = 19
 batch_size = 8
 input_shape = (257, 1247)
 (image_height, image_width) = input_shape
-train_path = "../datasets/mlsp2013/train";
-labels_path = "../datasets/mlsp2013/train/file2labels.csv";
+train_path = "./datasets/mlsp2013/train";
+labels_path = "./datasets/mlsp2013/train/file2labels.csv";
+weight_file_path = "./weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
@@ -44,7 +45,6 @@ model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
       verbose=1, validation_data=(X_valid, Y_valid))
 print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
 
-weight_file_path = "../weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
 model.save_weights(weight_file_path)
 print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
 print "The weights have been saved in: " + weight_file_path
