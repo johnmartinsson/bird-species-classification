@@ -6,8 +6,22 @@ import os
 import warnings
 import random
 import glob
-import utils
+from bird import utils
 import numpy as np
+
+def read_file2labels(file2labels_filepath):
+    labels = {}
+    with open(file2labels_filepath) as csvfile:
+        file2labels = csv.reader(csvfile, delimiter=',')
+        nb_files = 0
+        for row in file2labels:
+            nb_files+=1
+            if len(row) > 1:
+                labels[row[0]] = row[1:]
+            else:
+                labels[row[0]] = []
+    return labels
+
 
 def load_data(data_filepath=None, file2labels_filepath=None, size=300,
               nb_classes=19, image_shape=(1247, 257)):
@@ -23,17 +37,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
         if nb_csvfiles > 1:
             warnings.warn("There are multiple .csv files in dir: " + data_filepath)
 
-    labels = {}
-    with open(file2labels_filepath) as csvfile:
-        file2labels = csv.reader(csvfile, delimiter=',')
-        nb_files = 0
-        for row in file2labels:
-            nb_files+=1
-            if len(row) > 1:
-                labels[row[0]] = row[1:]
-            else:
-                labels[row[0]] = []
-        #print "Number of files: ", nb_files
+    labels = read_file2labels(file2labels_filepath)
 
     batch = []
     for i in range(size):
