@@ -5,6 +5,8 @@ import glob
 import sys
 import subprocess
 import wave
+import tqdm
+
 from scipy import signal
 from scipy import fft
 from scipy.io import wavfile
@@ -22,14 +24,14 @@ def preprocess_data_set(data_path, output_directory):
     wave_files = glob.glob(os.path.join(data_path, "*.wav"))
     file2labels_path = os.path.join(data_path, "file2labels.csv")
 
-    print(file2labels_path)
     file2labels = loader.read_file2labels(file2labels_path);
     file2labels_path_new = os.path.join(output_directory, "file2labels.csv")
 
     with open(file2labels_path_new, 'w') as file2labels_csv:
         file2labelswriter = csv.writer(file2labels_csv)
-        for f in wave_files:
-            print ("Preprocessing file: ", f)
+
+        progress = tqdm.tqdm(range(len(wave_files)))
+        for (f, p) in zip(wave_files, progress):
             basename = get_basename_without_ext(f)
             labels = file2labels[basename]
             preprocess_sound_file(f, output_directory, labels,
@@ -68,7 +70,6 @@ def preprocess_sound_file(filename, output_directory, labels, file2labelswriter)
     for s in signal_chunks:
         filename_chunk = os.path.join(output_directory, basename +
                                       "_signal_chunk_" + str(i_chunk) + ".wav")
-        print (filename_chunk)
         write_wave_to_file(filename_chunk, fs, s)
         file2labelswriter.writerow([get_basename_without_ext(filename_chunk)] + labels)
         i_chunk += 1
@@ -77,7 +78,6 @@ def preprocess_sound_file(filename, output_directory, labels, file2labelswriter)
     for s in noise_chunks:
         filename_chunk = os.path.join(output_directory, basename +
                                       "_noise_chunk_" + str(i_chunk) + ".wav")
-        print (filename_chunk)
         write_wave_to_file(filename_chunk, fs, s)
         i_chunk += 1
 
