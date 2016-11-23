@@ -1,7 +1,8 @@
 import numpy as np
-from bird import utils
 from skimage import morphology
 import skimage.filters as filters
+
+from bird import utils
 
 def extract_noise_part(spectrogram):
     """ Extract the noise part of a spectrogram
@@ -108,8 +109,8 @@ def reshape_binary_mask(mask, size):
         if rest >= 1:
             rest -= 1.
 
-    print (str(i_end))
-    print (str(size))
+    #print (str(i_end))
+    #print (str(size))
 
     #if i_end != size:
         #raise ValueError("method not working")

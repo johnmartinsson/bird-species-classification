@@ -6,8 +6,9 @@ import os
 import warnings
 import random
 import glob
-from bird import utils
 import numpy as np
+
+from bird import utils
 
 def read_file2labels(file2labels_filepath):
     labels = {}

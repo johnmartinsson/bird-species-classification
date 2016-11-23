@@ -1,19 +1,21 @@
-#! /usr/bin/env python3
 from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
-from models.cuberun import CubeRun
 from time import localtime, strftime
-import loader
+
+import numpy as np
+
+from bird import loader as loader
+from bird.models.cuberun import CubeRun
 
 # Settings
 nb_epoch = 20
 nb_classes = 19
 batch_size = 8
-input_shape = (257, 1247)
+input_shape = (257, 509)
 (image_height, image_width) = input_shape
-train_path = "./datasets/mlsp2013/train";
-labels_path = "./datasets/mlsp2013/train/file2labels.csv";
+train_path = "./datasets/mlsp2013/train_preprocessed";
+labels_path = "./datasets/mlsp2013/train_preprocessed/file2labels.csv";
 weight_file_path = "./weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
@@ -24,30 +26,34 @@ model.compile(loss='binary_crossentropy',
               optimizer='adadelta',
               metrics=['accuracy'])
 
-print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 # load the data
 X, Y, filenames = loader.load_all_data(train_path, labels_path,
                             nb_classes=nb_classes,
                             image_shape=(image_width, image_height));
 
+nb_x = X.shape[0]
+nb_y = Y.shape[0]
+nb_x_train = int(np.floor(0.7 * nb_x))
+nb_y_train = int(np.floor(0.7 * nb_y))
 # split data into training and validation set
-X_train = X[:230]
-Y_train = Y[:230]
-X_valid = X[230:]
-Y_valid = Y[230:]
+X_train = X[:nb_x_train]
+Y_train = Y[:nb_y_train]
+X_valid = X[nb_x_train:]
+Y_valid = Y[nb_x_train:]
 
-print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
-print "X_train shape: ", X_train.shape
-print "Y_train shape: ", Y_train.shape
+print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print ("X_train shape: ", X_train.shape)
+print ("Y_train shape: ", Y_train.shape)
 
 # fit the model to training data
 model.fit(X_train, Y_train, batch_size=batch_size, nb_epoch=nb_epoch,
       verbose=1, validation_data=(X_valid, Y_valid))
-print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
+print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 
 model.save_weights(weight_file_path)
-print strftime("%a, %d %b %Y %H:%M:%S +0000", localtime())
-print "The weights have been saved in: " + weight_file_path
+print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
+print ("The weights have been saved in: " + weight_file_path)
 
 #datagen = ImageDataGenerator(
     #featurewise_center=False, # Boolean. Set input mean to 0 over the dataset.
@@ -99,8 +105,8 @@ print "The weights have been saved in: " + weight_file_path
         ##classes=['cats', 'dogs'],
         #class_mode='categorical')
 
-#print "Training class dict: ", training_class_dict.class_indices
-#print "Validation class dict: ", validation_class_dict.class_indices
+#print ("Training class dict: ", training_class_dict.class_indices)
+#print ("Validation class dict: ", validation_class_dict.class_indices)
 ############################################################################
 
 #X_valid, Y_valid = loader.load_data(train_path, labels_path, size=100,

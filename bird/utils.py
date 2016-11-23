@@ -11,8 +11,8 @@ from scipy.io import wavfile
 from matplotlib import pyplot as plt
 from functools import reduce
 
-import bird.preprocessing as pp
-import bird.loader as loader
+from bird import preprocessing as pp
+from bird import loader as loader
 
 def get_basename_without_ext(filepath):
     basename = os.path.splitext(os.path.basename(filepath))[0]
