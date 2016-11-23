@@ -1,4 +1,4 @@
-from bird.utils import preprocess_data_set
+from bird import utils
 
-preprocess_data_set("datasets/mlsp2013/train",
+utils.preprocess_data_set("datasets/mlsp2013/train",
                     "datasets/mlsp2013/train_preprocessed")

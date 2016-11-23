@@ -1,5 +1,5 @@
 import numpy as np
-import utils
+from bird import utils
 from skimage import morphology
 import skimage.filters as filters
 
