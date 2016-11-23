@@ -21,12 +21,9 @@ def extract_signal_part(spectrogram):
 def extract_masked_part_from_spectrogram(mask, spectrogram):
     """ Extract the masked part of the spectrogram
     """
-    # the mask is binary and numpy arrays use boolean masks
-    mask = mask==1
     return spectrogram[:,mask]
 
 def extract_masked_part_from_wave(mask, wave):
-    mask = mask==1
     return wave[mask]
 
 def compute_signal_mask(spectrogram):
@@ -54,7 +51,7 @@ def compute_noise_mask(spectrogram):
     threshold = 2.5
     mask = compute_binary_mask(spectrogram, threshold)
     # invert mask
-    return 1-mask
+    return np.logical_not(mask)
 
 def compute_binary_mask(spectrogram, threshold):
     """ Computes a binary mask for the spectrogram
@@ -71,11 +68,14 @@ def compute_binary_mask(spectrogram, threshold):
 
     # closing binary image (dilation followed by erosion)
     binary_image = morphology.binary_closing(binary_image, selem=np.ones((4, 4)))
+
     # dialate binary image
     binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
+
     #utils.plot_matrix(binary_image, "Closing and Dilation")
     # apply median filter
     #binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
+
     # remove small objects
     binary_image = morphology.remove_small_objects(binary_image, min_size=32,
                                                    connectivity=1)
@@ -83,7 +83,7 @@ def compute_binary_mask(spectrogram, threshold):
     #utils.plot_matrix(binary_image, "Median Filter and Small Objects Removed")
 
     # TODO: transpose is O(n^2)
-    mask = np.array([np.max(col) for col in np.transpose(binary_image)])
+    mask = np.array([np.max(col) for col in binary_image.T])
     mask = smooth_mask(mask)
 
     return mask
@@ -92,7 +92,7 @@ def compute_binary_mask(spectrogram, threshold):
 def reshape_binary_mask(mask, size):
     """ Reshape a binary mask to a new larger size
     """
-    reshaped_mask = np.empty(size)
+    reshaped_mask = np.zeros(size, dtype=bool)
 
     x_size_mask = mask.shape[0]
     scale_fact = int(np.floor(size/x_size_mask))
@@ -114,7 +114,6 @@ def reshape_binary_mask(mask, size):
 
     #if i_end != size:
         #raise ValueError("method not working")
-
     return reshaped_mask
 
 def smooth_mask(mask):
@@ -129,7 +128,7 @@ def smooth_mask(mask):
     mask = morphology.binary_dilation(mask, n_hood)
 
     # type casting is a bitch
-    return 1*mask
+    return mask
 
 def mark_cells_times_larger_than_median(spectrogram, number_times_larger):
     """ Compute binary image from spectrogram where cells are marked as 1 if
@@ -137,15 +136,19 @@ def mark_cells_times_larger_than_median(spectrogram, number_times_larger):
     """
     row_medians = np.median(spectrogram, axis=1)
     col_medians = np.median(spectrogram, axis=0)
-    for row in range(spectrogram.shape[0]):
-        for col in range(spectrogram.shape[1]):
-            if spectrogram[row][col] > 3*row_medians[row] \
-               and spectrogram[row][col] > 3*col_medians[col]:
-                spectrogram[row][col] = 1
-            else:
-                spectrogram[row][col] = 0
 
-    return spectrogram
+    # create 2-d array where each cell contains row median
+    row_medians_cond = np.tile(row_medians, (spectrogram.shape[1], 1)).transpose()
+    # create 2-d array where each cell contains column median
+    col_medians_cond = np.tile(col_medians, (spectrogram.shape[0], 1))
+
+    # find cells number_times_larger than row and column median
+    larger_row_median = spectrogram >= row_medians_cond*number_times_larger
+    larger_col_median = spectrogram >= col_medians_cond*number_times_larger
+
+    # create binary image with cells number_times_larger row AND col median
+    binary_image = np.logical_and(larger_row_median, larger_col_median)
+    return binary_image
 
 def remove_low_and_high_frequency_bins(spectrogram, nb_low=5, nb_high=25):
     """ Removes low and high frequency bins from a spectrogram
