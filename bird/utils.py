@@ -1,10 +1,12 @@
 import numpy as np
 import os
+import glob
 import sys
 import subprocess
 import wave
 from scipy import signal
 from scipy import fft
+from scipy.io import wavfile
 from matplotlib import pyplot as plt
 from functools import reduce
 
@@ -12,15 +14,89 @@ import preprocessing as pp
 
 MLSP_DATA_PATH="/home/darksoox/gits/bird-species-classification/mlsp_contest_dataset/"
 
+def preprocess_data_set(data_path, output_directory):
+    wave_files = glob.glob(os.path.join(data_path, "*.wav"))
+
+    for f in wave_files:
+        print ("Preprocessing file: ", f)
+        preprocess_sound_file(f, output_directory)
+
+
+def preprocess_sound_file(filename, output_directory):
+    basename = os.path.splitext(os.path.basename(filename))[0]
+    fs, x = read_wave_file(filename)
+    (t, f, Sxx) = wave_to_spectrogram(x, fs)
+
+    n_mask = pp.compute_noise_mask(Sxx)
+    s_mask = pp.compute_signal_mask(Sxx)
+
+    n_mask_scaled = pp.reshape_binary_mask(n_mask, x.shape[0])
+    s_mask_scaled = pp.reshape_binary_mask(s_mask, x.shape[0])
+
+    signal_wave = pp.extract_masked_part_from_wave(s_mask_scaled, x)
+    noise_wave = pp.extract_masked_part_from_wave(n_mask_scaled, x)
+
+    chunk_size = 512 * 128
+    signal_wave_padded = zero_pad_wave(signal_wave, chunk_size)
+    noise_wave_padded = zero_pad_wave(noise_wave, chunk_size)
+
+    signal_chunks = split_into_chunks(signal_wave_padded, chunk_size)
+    noise_chunks = split_into_chunks(noise_wave_padded, chunk_size)
+
+    i_chunk = 0
+    for s in signal_chunks:
+        filename_chunk = os.path.join(output_directory, basename +
+                                      "_signal_chunk_" + str(i_chunk) + ".wav")
+        print (filename_chunk)
+        write_wave_to_file(filename_chunk, fs, s)
+        i_chunk += 1
+
+    i_chunk = 0
+    for s in noise_chunks:
+        filename_chunk = os.path.join(output_directory, basename +
+                                      "_noise_chunk_" + str(i_chunk) + ".wav")
+        print (filename_chunk)
+        write_wave_to_file(filename_chunk, fs, s)
+        i_chunk += 1
+
+    (t, f, Sxx_signal) = wave_to_spectrogram(signal_wave, fs)
+    (t, f, Sxx_noise) = wave_to_spectrogram(noise_wave, fs)
+
+
+def split_into_chunks(array, chunk_size):
+    nb_chunks = array.shape[0]/chunk_size
+
+    return np.split(array, nb_chunks)
+
+def zero_pad_wave(wave, chunk_size):
+    nb_wave = wave.shape[0]
+    nb_padding = chunk_size - (nb_wave % chunk_size)
+    return np.lib.pad(wave, (0, nb_padding), 'constant', constant_values=(0, 0))
+
+
 def test(filename):
     fs, x = read_wave_file(filename)
     (t, f, Sxx) = wave_to_spectrogram(x, fs)
     #noise = pp.extract_noise_part(Sxx)
-    plot_matrix(Sxx, "Spectrogram")
-    signal = pp.extract_signal_part(Sxx)
+    #plot_matrix(Sxx, "Spectrogram")
 
-    #plot_matrix(noise, "Noise")
-    #plot_matrix(signal, "Signal")
+    n_mask = pp.compute_noise_mask(Sxx)
+    s_mask = pp.compute_signal_mask(Sxx)
+
+    n_mask_scaled = pp.reshape_binary_mask(n_mask, x.shape[0])
+    s_mask_scaled = pp.reshape_binary_mask(s_mask, x.shape[0])
+
+    signal_wave = pp.extract_masked_part_from_wave(s_mask_scaled, x)
+    noise_wave = pp.extract_masked_part_from_wave(n_mask_scaled, x)
+
+    signal_wave_padded = zero_pad_wave(signal_wave)
+    noise_wave_padded = zero_pad_wave(noise_wave)
+
+    (t, f, Sxx_signal) = wave_to_spectrogram(signal_wave, fs)
+    (t, f, Sxx_noise) = wave_to_spectrogram(noise_wave, fs)
+
+    #plot_matrix(Sxx_signal, "Signal Spectrogram")
+    #plot_matrix(Sxx_noise, "Noise Spectrogram")
 
 def plot_spectrogram_from_wave(filename):
     fs, x = read_wave_file(filename)
@@ -36,7 +112,10 @@ def play_wave_file(filename):
         if (sys.platform == "linux" or sys.playform == "linux2"):
             subprocess.call(["aplay", filename])
         else:
-            print "Platform not supported"
+            print ("Platform not supported")
+
+def write_wave_to_file(filename, rate, wave):
+    wavfile.write(filename, rate, wave)
 
 def read_wave_file(filename):
     """ Read a wave file from disk
