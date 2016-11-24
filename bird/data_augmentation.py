@@ -70,7 +70,7 @@ def create_augmentation_paths_dict(signal1_filepath, signal1_labels,
         unique_sample_paths_dict : a dict with the filepaths to the signal and
         noise segments which will be used to augment the signal
     """
-    nb_noise_segments = 0
+    nb_noise_segments = 3
     nb_same_class_segments = 1
 
     same_labels_signal_filepaths = find_same_labels_filepaths(file2labels, signal1_labels)
