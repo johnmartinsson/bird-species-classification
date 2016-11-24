@@ -1,3 +1,7 @@
+import numpy as np
+SEED = 42
+np.random.seed(SEED)
+
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
@@ -84,14 +88,16 @@ train_generator = train_datagen.flow_from_directory(
         '../tutorial_data/train',  # this is the target directory
         target_size=(150, 150),  # all images will be resized to 150x150
         batch_size=32,
-        class_mode='binary')  # since we use binary_crossentropy loss, we need binary labels
+        class_mode='binary',
+        seed=SEED)  # since we use binary_crossentropy loss, we need binary labels
 
 # this is a similar generator, for validation data
 validation_generator = test_datagen.flow_from_directory(
         '../tutorial_data/validation',
         target_size=(150, 150),
         batch_size=32,
-        class_mode='binary')
+        class_mode='binary',
+        seed=SEED)
 
 model.fit_generator(
         train_generator,
