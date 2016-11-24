@@ -78,13 +78,6 @@ def preprocess_sound_file(filename, output_directory, labels, file2labelswriter)
         write_wave_to_file(filename_chunk, fs, s)
         i_chunk += 1
 
-def find_same_class_files(file2labels, labels):
-    same_class_files = []
-    for key, value in file2labels.items():
-        if(labels == value):
-            same_class_files.append(key)
-    return same_class_files
-
 def split_into_chunks(array, chunk_size):
     nb_chunks = array.shape[0]/chunk_size
 
