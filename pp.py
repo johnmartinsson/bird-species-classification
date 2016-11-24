@@ -1,4 +1,4 @@
-from bird import utils
+from bird import preprocessing as pp
 
-utils.preprocess_data_set("datasets/mlsp2013/train",
+pp.preprocess_data_set("datasets/mlsp2013/train",
                     "datasets/mlsp2013/train_preprocessed")

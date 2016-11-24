@@ -2,8 +2,81 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage import morphology
 import skimage.filters as filters
+import glob
+import os
+import csv
+import tqdm
 
 from bird import utils
+from bird import loader
+
+def preprocess_data_set(data_path, output_directory):
+    wave_files = glob.glob(os.path.join(data_path, "*.wav"))
+    file2labels_path = os.path.join(data_path, "file2labels.csv")
+
+    file2labels = loader.read_file2labels(file2labels_path);
+    file2labels_path_new = os.path.join(output_directory, "file2labels.csv")
+
+    with open(file2labels_path_new, 'w') as file2labels_csv:
+        file2labelswriter = csv.writer(file2labels_csv)
+
+        progress = tqdm.tqdm(range(len(wave_files)))
+        for (f, p) in zip(wave_files, progress):
+            basename = utils.get_basename_without_ext(f)
+            labels = file2labels[basename]
+            preprocess_sound_file(f, output_directory, labels,
+                                  file2labelswriter)
+
+def preprocess_wave(wave, fs):
+    (t, f, Sxx) = utils.wave_to_spectrogram(wave, fs)
+
+    n_mask = compute_noise_mask(Sxx)
+    s_mask = compute_signal_mask(Sxx)
+
+    n_mask_scaled = reshape_binary_mask(n_mask, wave.shape[0])
+    s_mask_scaled = reshape_binary_mask(s_mask, wave.shape[0])
+
+    signal_wave = extract_masked_part_from_wave(s_mask_scaled, wave)
+    noise_wave = extract_masked_part_from_wave(n_mask_scaled, wave)
+
+    chunk_size = 512 * 128
+    signal_wave_padded = zero_pad_wave(signal_wave, chunk_size)
+    noise_wave_padded = zero_pad_wave(noise_wave, chunk_size)
+
+    signal_chunks = split_into_chunks(signal_wave_padded, chunk_size)
+    noise_chunks = split_into_chunks(noise_wave_padded, chunk_size)
+
+    return signal_chunks, noise_chunks
+
+def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
+    basename = os.path.splitext(os.path.basename(filename))[0]
+    fs, x = utils.read_wave_file(filename)
+    signal_chunks, noise_chunks = preprocess_wave(x, fs)
+
+    i_chunk = 0
+    for s in signal_chunks:
+        filename_chunk = os.path.join(output_directory, basename +
+                                      "_signal_chunk_" + str(i_chunk) + ".wav")
+        utils.write_wave_to_file(filename_chunk, fs, s)
+        file2labelswriter.writerow([utils.get_basename_without_ext(filename_chunk)] + labels)
+        i_chunk += 1
+
+    i_chunk = 0
+    for s in noise_chunks:
+        filename_chunk = os.path.join(output_directory, basename +
+                                      "_noise_chunk_" + str(i_chunk) + ".wav")
+        utils.write_wave_to_file(filename_chunk, fs, s)
+        i_chunk += 1
+
+def split_into_chunks(array, chunk_size):
+    nb_chunks = array.shape[0]/chunk_size
+
+    return np.split(array, nb_chunks)
+
+def zero_pad_wave(wave, chunk_size):
+    nb_wave = wave.shape[0]
+    nb_padding = chunk_size - (nb_wave % chunk_size)
+    return np.lib.pad(wave, (0, nb_padding), 'constant', constant_values=(0, 0))
 
 def extract_noise_part(spectrogram):
     """ Extract the noise part of a spectrogram
@@ -54,7 +127,7 @@ def compute_noise_mask(spectrogram):
     # invert mask
     return np.logical_not(mask)
 
-def compute_binary_mask(spectrogram, threshold, save_as_image, filename):
+def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""):
     """ Computes a binary mask for the spectrogram
     # Arguments
         spectrogram : a numpy array representation of a spectrogram (2-dim)
