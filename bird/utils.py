@@ -46,9 +46,6 @@ def preprocess_wave(wave, fs):
     n_mask_scaled = pp.reshape_binary_mask(n_mask, wave.shape[0])
     s_mask_scaled = pp.reshape_binary_mask(s_mask, wave.shape[0])
 
-    #print ("Signal shape: ", x.shape)
-    #print ("Noise mask shape: ", n_mask_scaled.shape)
-
     signal_wave = pp.extract_masked_part_from_wave(s_mask_scaled, wave)
     noise_wave = pp.extract_masked_part_from_wave(n_mask_scaled, wave)
 
@@ -203,6 +200,18 @@ def wave_to_spectrogram2(S):
 
     return np.array(Spectrogram)
 
+def compute_and_save_mask_as_image_from_file(filename):
+    fs, x = read_wave_file(filename)
+    t, f, Sxx = wave_to_spectrogram(x, fs)
+    basename = get_basename_without_ext(filename)
+    mask = pp.compute_binary_mask(Sxx, 3.0, True, basename+".png")
+
+def subplot_image(Sxx, n_subplot, title):
+    cmap = grayify_cmap('cubehelix_r')
+    plt.subplot(n_subplot)
+    plt.title(title)
+    plt.pcolormesh(Sxx, cmap=cmap)
+
 def plot_matrix(Sxx, title):
     cmap = grayify_cmap('cubehelix_r')
     #cmap = plt.cm.get_cmap('gist_rainbow')
@@ -220,8 +229,6 @@ def plot_vector(x):
         mesh[255][i] = x[i] * 2500
         mesh[254][i] = x[i] * 2500
     plot_matrix(mesh)
-
-
 
 def grayify_cmap(cmap):
     """Return a grayscale version of the colormap"""

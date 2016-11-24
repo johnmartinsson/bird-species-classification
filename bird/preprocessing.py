@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from skimage import morphology
 import skimage.filters as filters
 
@@ -53,7 +54,7 @@ def compute_noise_mask(spectrogram):
     # invert mask
     return np.logical_not(mask)
 
-def compute_binary_mask(spectrogram, threshold):
+def compute_binary_mask(spectrogram, threshold, save_as_image, filename):
     """ Computes a binary mask for the spectrogram
     # Arguments
         spectrogram : a numpy array representation of a spectrogram (2-dim)
@@ -64,7 +65,10 @@ def compute_binary_mask(spectrogram, threshold):
     norm_spectrogram = normalize(spectrogram)
     binary_image = mark_cells_times_larger_than_median(norm_spectrogram, threshold)
 
-    #utils.plot_matrix(binary_image, "Median Clipping")
+    if save_as_image:
+        plt.figure(1)
+        utils.subplot_image(spectrogram, 411, "Spectrogram")
+        utils.subplot_image(binary_image, 412, "Median Clipping")
 
     # closing binary image (dilation followed by erosion)
     binary_image = morphology.binary_closing(binary_image, selem=np.ones((4, 4)))
@@ -72,15 +76,23 @@ def compute_binary_mask(spectrogram, threshold):
     # dialate binary image
     binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
 
-    #utils.plot_matrix(binary_image, "Closing and Dilation")
+    if save_as_image:
+        utils.subplot_image(binary_image, 413, "Closing and Dilation")
+
     # apply median filter
     #binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
 
     # remove small objects
     binary_image = morphology.remove_small_objects(binary_image, min_size=32,
                                                    connectivity=1)
+    if save_as_image:
+        utils.subplot_image(binary_image, 414, "Small Objects Removed")
 
-    #utils.plot_matrix(binary_image, "Median Filter and Small Objects Removed")
+    if save_as_image:
+        fig = plt.figure(1)
+        fig.set_size_inches(10, 12)
+        plt.tight_layout()
+        fig.savefig(filename, dpi=100)
 
     # TODO: transpose is O(n^2)
     mask = np.array([np.max(col) for col in binary_image.T])
@@ -109,11 +121,13 @@ def reshape_binary_mask(mask, size):
         if rest >= 1:
             rest -= 1.
 
-    #print (str(i_end))
-    #print (str(size))
+    #print("scale_fact", scale_fact)
+    #print("i_end:", i_end)
+    #print("size:", size)
 
-    #if i_end != size:
-        #raise ValueError("method not working")
+    if not (i_end - scale_fact) == size:
+        raise ValueError("there seems to be a scaling error in reshape_binary_mask")
+
     return reshaped_mask
 
 def smooth_mask(mask):
