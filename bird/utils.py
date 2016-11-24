@@ -168,18 +168,6 @@ def wave_to_spectrogram(wave=np.array([]), fs=None, nperseg=512, noverlap=384):
     return signal.spectrogram(wave, fs, window, nperseg, noverlap,
                               mode='magnitude')
 
-def additively_combine_narrays(narrays):
-    """ Additively combine and rescale two narrays
-    # Arguments
-        narrays : the narrays to combine
-    # Returns
-        out     : the combined and rescaled narray
-    """
-    nb_narrays = narrays.shape[0]
-    norm_factor = 1.0/nb_narrays
-    narray = reduce(lambda a1, a2: norm_factor*a1 + norm_factor*a2, narrays)
-    return narray
-
 def wave_to_spectrogram2(S):
     Spectrogram = []
     N = 160000
@@ -204,6 +192,16 @@ def subplot_image(Sxx, n_subplot, title):
     plt.subplot(n_subplot)
     plt.title(title)
     plt.pcolormesh(Sxx, cmap=cmap)
+
+def save_matrix_to_file(Sxx, title, filename):
+    cmap = grayify_cmap('cubehelix_r')
+    #cmap = plt.cm.get_cmap('gist_rainbow')
+    fig = plt.figure()
+    fig.suptitle(title, fontsize=12)
+    plt.pcolormesh(Sxx, cmap=cmap)
+    plt.ylabel('Frequency Bins')
+    plt.xlabel('Samples')
+    fig.savefig(filename)
 
 def plot_matrix(Sxx, title):
     cmap = grayify_cmap('cubehelix_r')
