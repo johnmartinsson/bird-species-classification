@@ -3,10 +3,19 @@ Using convolutional neural networks to build and train a bird species classifier
 
 ## Setup
 ```bash
-git clone https://github.com/johnmartinsson/bird-species-classification
-virtualenv venv
-source venv/bin/activate
-pip install -r requirements.txt
+$ git clone https://github.com/johnmartinsson/bird-species-classification
+$ virtualenv -p /usr/bin/python3.5 venv
+$ source venv/bin/activate
+(venv)$ pip install -r requirements.txt
+
+# Ubuntu/Linux 64-bit, CPU only, Python 3.5
+(venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0-cp35-cp35m-linux_x86_64.whl
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.5
+# Requires CUDA toolkit 8.0 and CuDNN v5. For other versions, see "Install from sources" below.
+(venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0-cp35-cp35m-linux_x86_64.whl
+
+# Install tensorflow
+(venv)$ pip3 install --upgrade $TF_BINARY_URL
 ```
 
 # Usage Instriction
@@ -15,22 +24,9 @@ Note that these instructions can __not__ be followed right now, but they are rat
 ## Train
 The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
 
-```bash
-cd bird
-python train.py --model="cuberun" --train_data="../datasets/mlsp2013/train" --validation_data="../datasets/mlsp2013/validation"
-```
-
 ## Test
-```bash
-cd bird
-python test.py --dataset="../datasets/mlsp2013/test" --model="cuberun" --weights="../weights/<weight_file>.h5
-```
 
 ## Predict
-```bash
-cd bird
-python predict.py --weights="../weights/<weight_file>.h5 <path_to_wav_file>
-```
 
 # Libraries
 The following libraries are used in this method:
