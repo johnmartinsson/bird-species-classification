@@ -1,5 +1,5 @@
-# Given path to .wav folder, and path to .csv file name -> class bag
-# Return training data X_train, Y_train
+import numpy as np
+np.random.seed(42)
 
 import gc
 import csv
@@ -7,8 +7,6 @@ import os
 import warnings
 import random
 import glob
-import numpy as np
-np.random.seed(42)
 
 from bird import utils
 from bird import data_augmentation as da

@@ -1,9 +1,12 @@
+import numpy as np
+# Fix the random seed to make results reproducible
+np.random.seed(42)
+
 from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
 from time import localtime, strftime
 
-import numpy as np
 
 from bird import loader as loader
 from bird.models.cuberun import CubeRun
@@ -41,13 +44,12 @@ mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
                                               train_path, labels_path,
                                                    nb_classes, samplerate)
 
+# fit the model to training data
 for X_train, Y_train in mini_batch_generator:
     print("X train shape:", X_train.shape)
     print("Y train shape:", Y_train.shape)
     model.fit(X_train, Y_train, batch_size, nb_epoch_per_mini_batch)
 
-
-# fit the model to training data
 
 # save the weights
 model.save_weights(weight_file_path)

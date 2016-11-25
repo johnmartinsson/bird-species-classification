@@ -1,8 +1,9 @@
-import os
-import glob
 import numpy as np
 # Fix the random seed to make results reproducible
 np.random.seed(42)
+
+import os
+import glob
 
 from bird import utils
 from functools import reduce
