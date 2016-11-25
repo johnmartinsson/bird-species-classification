@@ -92,3 +92,4 @@ mlsp_contest_dataset/
 *.wav
 tutorial_data/
 datasets
+.*.swp
