@@ -98,6 +98,9 @@ def wave_to_spectrogram(wave=np.array([]), fs=None, nperseg=512, noverlap=384):
     window = signal.get_window('hanning', nperseg)
     return signal.spectrogram(wave, fs, window, nperseg, noverlap,
                               mode='magnitude')
+def wave_to_spectrogram_aux(wave, fs):
+    (f, t, Sxx) = wave_to_spectrogram(wave, fs)
+    return Sxx
 
 def compute_and_save_mask_as_image_from_file(filename):
     fs, x = read_wave_file(filename)
