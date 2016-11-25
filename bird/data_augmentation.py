@@ -28,18 +28,20 @@ def find_same_labels_filepaths(file2labels, labels):
             same_class_files.append(key)
     return same_class_files
 
-def apply_augmentation(augmentation_paths_dict):
+def apply_augmentation(augmentation_dict):
     """ Load the wave segments from file and apply the augmentation
     """
-    fs, s1 = utils.read_wave_file(augmentation_paths_dict['signal_path'])
-    fs, s2 = utils.read_wave_file(augmentation_paths_dict['augmentation_signal_path'])
-    noise_segments_aux = map(utils.read_wave_file, augmentation_paths_dict['augmentation_noise_paths'])
+    fs, s1 = utils.read_wave_file(augmentation_dict['signal_filepath'])
+    fs, s2 = utils.read_wave_file(augmentation_dict['augmentation_signal_filepath'])
+    noise_segments_aux = map(utils.read_wave_file, augmentation_dict['augmentation_noise_filepaths'])
     noise_segments = [n for (fs, n) in noise_segments_aux]
     augmentation_segments = [s1, s2] + noise_segments
     s_aug = reduce(lambda s1, s2: additively_combine_narrays(s1, s2), augmentation_segments)
 
+    labels = augmentation_dict['labels']
+    labels = [int(l) for l in labels]
     # return augmented signal and its labels
-    return (s_aug, augmentation_paths_dict['labels'])
+    return (s_aug, labels)
 
 def additively_combine_narrays(narr1, narr2):
     """ Additively combine two narrays using a random weight
@@ -50,12 +52,10 @@ def additively_combine_narrays(narr1, narr2):
         out     : the combined and rescaled narray
     """
     alpha = np.random.rand()
-    print("Alpha:", alpha)
     combined_narray = alpha*narr1 + (1.0-alpha)*narr2
     return combined_narray
 
-def create_augmentation_paths_dict(signal1_filepath, signal1_labels,
-                                   file2labels, data_path):
+def create_augmentation_dict(signal_filename, noise_segment_filenames, file2labels):
     """ Create a dict with the paths to the signal segments that should be used
     to create this unique, augmented, sample. Assumes that noise segments is in
     data_path/noise.
@@ -73,23 +73,25 @@ def create_augmentation_paths_dict(signal1_filepath, signal1_labels,
     nb_noise_segments = 3
     nb_same_class_segments = 1
 
-    same_labels_signal_filepaths = find_same_labels_filepaths(file2labels, signal1_labels)
-    signal2_filepath = np.random.choice(same_labels_signal_filepaths,
+    signal_labels = file2labels[signal_filename]
+    same_labels_signal_filenames = find_same_labels_filepaths(file2labels, signal_labels)
+
+    augmentation_signal_filename = np.random.choice(same_labels_signal_filenames,
                                         nb_same_class_segments,
                                         replace=False)[0]
-    noise_relative_filepaths = glob.glob(os.path.join(data_path, "noise", "*.wav"))
-    noise_relative_filepaths = np.random.choice(noise_relative_filepaths, nb_noise_segments, replace=False)
+
+    augmentation_noise_filenames = np.random.choice(noise_segment_filenames, nb_noise_segments, replace=False)
 
     # reconstruct relative paths
-    signal1_relative_filepath = os.path.join(data_path, signal1_filepath + ".wav")
-    signal2_relative_filepath = os.path.join(data_path, signal2_filepath + ".wav")
+    #signal1_relative_filepath = os.path.join(data_path, signal1_filepath + ".wav")
+    #signal2_relative_filepath = os.path.join(data_path, signal2_filepath + ".wav")
     #noise_relative_filepaths = [os.path.join(data_path, n_path) for n_path in noise_filepaths]
 
     # create the dict
-    unique_sample_paths_dict = {
-        'signal_path':signal1_relative_filepath,
-        'labels':signal1_labels,
-        'augmentation_signal_path':signal2_relative_filepath,
-        'augmentation_noise_paths':noise_relative_filepaths
+    augmentation_dict = {
+        'signal_filename':signal_filename,
+        'labels':signal_labels,
+        'augmentation_signal_filename':augmentation_signal_filename,
+        'augmentation_noise_filenames':augmentation_noise_filenames
     }
-    return unique_sample_paths_dict
+    return augmentation_dict
