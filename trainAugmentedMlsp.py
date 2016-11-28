@@ -20,6 +20,8 @@ input_shape = (257, 509)
 (image_height, image_width) = input_shape
 train_path = "./datasets/mlsp2013/train_preprocessed";
 labels_path = "./datasets/mlsp2013/train_preprocessed/file2labels.csv";
+test_path = "./datasets/mlsp2013/test_preprocessed";
+test_labels_path = "./datasets/mlsp2013/test_preprocessed/file2labels.csv";
 weight_file_path = "./weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun.h5"
 samplerate = 16000
 
@@ -38,6 +40,10 @@ model.compile(loss='binary_crossentropy',
 
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 # load the data
+X_valid, Y_valid = loader.load_all_data(test_path, test_labels_path, nb_classes,
+                                        input_shape)
+
+
 mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
                                               nb_mini_baches,
                                               nb_segments_per_mini_batch,
@@ -48,7 +54,9 @@ mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
 for X_train, Y_train in mini_batch_generator:
     print("X train shape:", X_train.shape)
     print("Y train shape:", Y_train.shape)
-    model.fit(X_train, Y_train, batch_size, nb_epoch_per_mini_batch)
+    model.fit(X_train, Y_train, batch_size=batch_size,
+              nb_epoch=nb_epoch_per_mini_batch,
+              validation_data=(X_valid, Y_valid))
 
 
 # save the weights
