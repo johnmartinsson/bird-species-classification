@@ -41,12 +41,12 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
 def load_noise_segment_filenames(data_filepath):
     noise_segment_filenames = [utils.get_basename_without_ext(f) for f in
                            glob.glob(os.path.join(data_filepath, "noise",
-                                                  "*.wav"))]
+                                                  "*.wav.gz"))]
     return noise_segment_filenames
 
 def load_signal_segment_filenames(data_filepath):
     signal_segment_filenames = [utils.get_basename_without_ext(f) for f in
-                            glob.glob(os.path.join(data_filepath, "*.wav"))]
+                            glob.glob(os.path.join(data_filepath, "*.wav.gz"))]
     return signal_segment_filenames
 
 
@@ -71,12 +71,12 @@ def reconstruct_relative_paths(augmentation_dict, data_filepath):
     augmentation_noise_filenames = augmentation_dict['augmentation_noise_filenames']
     labels = augmentation_dict['labels']
 
-    signal_filepath = os.path.join(data_filepath, signal_filename+".wav")
+    signal_filepath = os.path.join(data_filepath, signal_filename+".wav.gz")
     augmentation_signal_filepath = os.path.join(data_filepath,
                                                 augmentation_signal_filename
-                                                +".wav")
+                                                +".wav.gz")
     augmentation_noise_filepaths = [os.path.join(data_filepath, "noise",
-                                                 noise_filename+".wav") for
+                                                 noise_filename+".wav.gz") for
                                                  noise_filename in
                                                  augmentation_noise_filenames]
     augmentation_segment = {
@@ -121,7 +121,8 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
     batch = []
     for i in range(size):
         # TODO: should probably be without replacement
-        rand_data_file = random.choice(glob.glob(os.path.join(data_filepath, "*.wav")))
+        rand_data_file = random.choice(glob.glob(os.path.join(data_filepath,
+                                                              "*.wav.gz")))
         basename = os.path.basename(rand_data_file)
         basenameWithoutExtension = os.path.splitext(basename)[0]
         rand_data_file_labels = labels[basenameWithoutExtension]
@@ -132,7 +133,7 @@ def load_data(data_filepath=None, file2labels_filepath=None, size=300,
     X_train = np.array([]).reshape(0, spec_rows, spec_cols)
     Y_train = np.array([]).reshape(0, nb_classes)
     for sample in batch:
-        fs, wave = utils.read_wave_file(sample['file_name'])
+        fs, wave = utils.read_gzip_wave_file(sample['file_name'])
         (f, t, Sxx) = utils.wave_to_spectrogram(wave=wave, fs=fs)
         y = [int(x) for x in sample['labels']]
         y = id_labels2binary_labels(y, nb_classes)
@@ -156,41 +157,36 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
         if nb_csvfiles > 1:
             warnings.warn("There are multiple .csv files in dir: " + data_filepath)
 
-    labels = {}
-    with open(file2labels_filepath) as csvfile:
-        file2labels = csv.reader(csvfile, delimiter=',')
-        nb_files = 0
-        for row in file2labels:
-            nb_files+=1
-            if len(row) > 1:
-                labels[row[0]] = row[1:]
-            else:
-                labels[row[0]] = []
-
+    labels = read_file2labels(file2labels_filepath)
     batch = []
 
-    all_data_files = glob.glob(os.path.join(data_filepath, "*.wav"))
+    all_data_files = glob.glob(os.path.join(data_filepath, "*.wav.gz"))
     for data_file in all_data_files:
-        # TODO: should probably be without replacement
-        basename = os.path.basename(data_file)
-        basenameWithoutExtension = os.path.splitext(basename)[0]
+        basenameWithoutExtension = utils.get_basename_without_ext(data_file)
         data_file_labels = labels[basenameWithoutExtension]
         batch.append({'file_name':data_file,
                       'labels':data_file_labels})
 
     spec_cols, spec_rows = image_shape
-    X_train = np.array([]).reshape(0, spec_rows, spec_cols)
-    Y_train = np.array([]).reshape(0, nb_classes)
+    #X_train = np.array([]).reshape(0, spec_rows, spec_cols)
+    #Y_train = np.array([]).reshape(0, nb_classes)
+    X_train = []
+    Y_train = []
     for sample in batch:
-        fs, wave = utils.read_wave_file(sample['file_name'])
+        fs, wave = utils.read_gzip_wave_file(sample['file_name'])
         (f, t, Sxx) = utils.wave_to_spectrogram(wave=wave, fs=fs)
         y = [int(x) for x in sample['labels']]
         y = id_labels2binary_labels(y, nb_classes)
-        X_train = np.concatenate((X_train, np.array([Sxx])), axis=0)
-        Y_train = np.concatenate((Y_train, np.array([y])), axis=0)
+        #X_train = np.concatenate((X_train, np.array([Sxx])), axis=0)
+        #Y_train = np.concatenate((Y_train, np.array([y])), axis=0)
+        X_train.append(Sxx)
+        Y_train.append(y)
 
-    X_train = X_train.reshape(X_train.shape[0], spec_rows, spec_cols, 1)
-    return X_train, Y_train, all_data_files
+    X_train = np.array(X_train)
+    Y_train = np.array(Y_train)
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1],
+                              X_train.shape[2], 1)
+    return X_train, Y_train
 
 def id_labels2binary_labels(labels, nb_classes):
     binary_labels = np.zeros(nb_classes)

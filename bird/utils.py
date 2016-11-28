@@ -6,6 +6,7 @@ import sys
 import subprocess
 import wave
 import tqdm
+import gzip
 
 from scipy import signal
 from scipy import fft
@@ -17,11 +18,11 @@ from bird import preprocessing as pp
 from bird import loader as loader
 
 def get_basename_without_ext(filepath):
-    basename = os.path.splitext(os.path.basename(filepath))[0]
+    basename = os.path.basename(filepath).split(os.extsep)[0]
     return basename
 
 def test(filename):
-    fs, x = read_wave_file(filename)
+    fs, x = read_gzip_wave_file(filename)
     (t, f, Sxx) = wave_to_spectrogram(x, fs)
     #noise = pp.extract_noise_part(Sxx)
     #plot_matrix(Sxx, "Spectrogram")
@@ -45,7 +46,7 @@ def test(filename):
     #plot_matrix(Sxx_noise, "Noise Spectrogram")
 
 def plot_spectrogram_from_wave(filename):
-    fs, x = read_wave_file(filename)
+    fs, x = read_gzip_wave_file(filename)
     (t, f, Sxx) = wave_to_spectrogram(x, fs)
     plot_matrix(Sxx, "Spectrogram")
 
@@ -62,6 +63,25 @@ def play_wave_file(filename):
 
 def write_wave_to_file(filename, rate, wave):
     wavfile.write(filename, rate, wave)
+
+def read_gzip_wave_file(filename):
+    if (not os.path.isfile(filename)):
+        raise ValueError("File does not exist")
+
+    with gzip.open(filename, 'rb') as wav_file:
+        with wave.open(wav_file, 'rb') as s:
+            if (s.getnchannels() != 1):
+                raise ValueError("Wave file should be mono")
+            if (s.getframerate() != 16000):
+                raise ValueError("Sampling rate of wave file should be 16000")
+
+            strsig = s.readframes(s.getnframes())
+            x = np.fromstring(strsig, np.short)
+            fs = s.getframerate()
+            s.close()
+
+            return fs, x
+
 
 def read_wave_file(filename):
     """ Read a wave file from disk
@@ -103,7 +123,7 @@ def wave_to_spectrogram_aux(wave, fs):
     return Sxx
 
 def compute_and_save_mask_as_image_from_file(filename):
-    fs, x = read_wave_file(filename)
+    fs, x = read_gzip_wave_file(filename)
     t, f, Sxx = wave_to_spectrogram(x, fs)
     basename = get_basename_without_ext(filename)
     mask = pp.compute_binary_mask(Sxx, 3.0, True, basename+".png")

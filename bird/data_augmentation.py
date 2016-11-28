@@ -8,10 +8,12 @@ import glob
 from bird import utils
 from functools import reduce
 
-def time_shift(spectrogram):
-    return
+def time_shift_signal(wave):
+    size = wave.shape[0]
+    shift_at_time = np.random.randint(0, size)
+    return np.roll(wave, shift_at_time)
 
-def pitch_shift(spectrogram):
+def pitch_shift_signal(spectrogram):
     return
 
 def find_same_labels_filepaths(file2labels, labels):
@@ -29,15 +31,19 @@ def find_same_labels_filepaths(file2labels, labels):
             same_class_files.append(key)
     return same_class_files
 
-def apply_augmentation(augmentation_dict):
+def apply_augmentation(augmentation_dict, time_shift=True):
     """ Load the wave segments from file and apply the augmentation
     """
-    fs, s1 = utils.read_wave_file(augmentation_dict['signal_filepath'])
-    fs, s2 = utils.read_wave_file(augmentation_dict['augmentation_signal_filepath'])
-    noise_segments_aux = map(utils.read_wave_file, augmentation_dict['augmentation_noise_filepaths'])
+    fs, s1 = utils.read_gzip_wave_file(augmentation_dict['signal_filepath'])
+    fs, s2 = utils.read_gzip_wave_file(augmentation_dict['augmentation_signal_filepath'])
+    noise_segments_aux = map(utils.read_gzip_wave_file, augmentation_dict['augmentation_noise_filepaths'])
     noise_segments = [n for (fs, n) in noise_segments_aux]
     augmentation_segments = [s1, s2] + noise_segments
     s_aug = reduce(lambda s1, s2: additively_combine_narrays(s1, s2), augmentation_segments)
+
+    # time shift signal
+    if time_shift:
+        s_aug = time_shift_signal(s_aug)
 
     labels = augmentation_dict['labels']
     labels = [int(l) for l in labels]
