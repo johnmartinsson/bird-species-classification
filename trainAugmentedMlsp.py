@@ -12,7 +12,6 @@ from bird import loader as loader
 from bird.models.cuberun import CubeRun
 
 # Settings
-nb_epoch_per_mini_batch = 5
 batch_size = 16
 nb_classes = 19
 batch_size = 8
@@ -26,9 +25,10 @@ weight_file_path = "./weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + 
 samplerate = 16000
 
 # Settings Mini Batch Generator
-nb_augmentation_samples = 4000
-nb_mini_baches = 5
-nb_segments_per_mini_batch = 500
+nb_augmentation_samples = 5000
+nb_mini_baches = 20
+nb_epoch_per_mini_batch = 25
+nb_segments_per_mini_batch = 1000
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
@@ -51,12 +51,14 @@ mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
                                                    nb_classes, samplerate)
 
 # fit the model to training data
+i_mini_batch = 0
 for X_train, Y_train in mini_batch_generator:
-    print("X train shape:", X_train.shape)
-    print("Y train shape:", Y_train.shape)
+    print("mini-batch: ", i_mini_batch, "/", nb_mini_baches)
     model.fit(X_train, Y_train, batch_size=batch_size,
               nb_epoch=nb_epoch_per_mini_batch,
               validation_data=(X_valid, Y_valid))
+
+    i_mini_batch += 1
 
 
 # save the weights
