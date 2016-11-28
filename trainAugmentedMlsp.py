@@ -33,9 +33,9 @@ nb_segments_per_mini_batch = 500
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
 # Setup compile
-sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='binary_crossentropy',
-              optimizer='adadelta',
+              optimizer=sgd,
               metrics=['fbeta_score'])
 
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
