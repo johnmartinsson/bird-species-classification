@@ -10,7 +10,7 @@ import tqdm
 from scipy import signal
 from scipy import fft
 from scipy.io import wavfile
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from functools import reduce
 
 from bird import preprocessing as pp
@@ -108,49 +108,49 @@ def compute_and_save_mask_as_image_from_file(filename):
     basename = get_basename_without_ext(filename)
     mask = pp.compute_binary_mask(Sxx, 3.0, True, basename+".png")
 
-def subplot_image(Sxx, n_subplot, title):
-    cmap = grayify_cmap('cubehelix_r')
-    plt.subplot(n_subplot)
-    plt.title(title)
-    plt.pcolormesh(Sxx, cmap=cmap)
-
-def save_matrix_to_file(Sxx, title, filename):
-    cmap = grayify_cmap('cubehelix_r')
-    #cmap = plt.cm.get_cmap('gist_rainbow')
-    fig = plt.figure()
-    fig.suptitle(title, fontsize=12)
-    plt.pcolormesh(Sxx, cmap=cmap)
-    plt.ylabel('Frequency Bins')
-    plt.xlabel('Samples')
-    fig.savefig(filename)
-
-def plot_matrix(Sxx, title):
-    cmap = grayify_cmap('cubehelix_r')
-    #cmap = plt.cm.get_cmap('gist_rainbow')
-    fig = plt.figure()
-    fig.suptitle(title, fontsize=12)
-    plt.pcolormesh(Sxx, cmap=cmap)
-    plt.ylabel('Frequency Bins')
-    plt.xlabel('Samples')
-    plt.show()
-
-def plot_vector(x):
-    mesh = np.zeros((257, x.shape[0]))
-    for i in range(x.shape[0]):
-        mesh[256][i] = x[i] * 2500
-        mesh[255][i] = x[i] * 2500
-        mesh[254][i] = x[i] * 2500
-    plot_matrix(mesh)
-
-def grayify_cmap(cmap):
-    """Return a grayscale version of the colormap"""
-    cmap = plt.cm.get_cmap(cmap)
-    colors = cmap(np.arange(cmap.N))
-
-    # convert RGBA to perceived greyscale luminance
-    # cf. http://alienryderflex.com/hsp.html
-    RGB_weight = [0.299, 0.587, 0.114]
-    luminance = np.sqrt(np.dot(colors[:, :3] ** 2, RGB_weight))
-    colors[:, :3] = luminance[:, np.newaxis]
-
-    return cmap.from_list(cmap.name + "_grayscale", colors, cmap.N)
+#def subplot_image(Sxx, n_subplot, title):
+#    cmap = grayify_cmap('cubehelix_r')
+#    plt.subplot(n_subplot)
+#    plt.title(title)
+#    plt.pcolormesh(Sxx, cmap=cmap)
+#
+#def save_matrix_to_file(Sxx, title, filename):
+#    cmap = grayify_cmap('cubehelix_r')
+#    #cmap = plt.cm.get_cmap('gist_rainbow')
+#    fig = plt.figure()
+#    fig.suptitle(title, fontsize=12)
+#    plt.pcolormesh(Sxx, cmap=cmap)
+#    plt.ylabel('Frequency Bins')
+#    plt.xlabel('Samples')
+#    fig.savefig(filename)
+#
+#def plot_matrix(Sxx, title):
+#    cmap = grayify_cmap('cubehelix_r')
+#    #cmap = plt.cm.get_cmap('gist_rainbow')
+#    fig = plt.figure()
+#    fig.suptitle(title, fontsize=12)
+#    plt.pcolormesh(Sxx, cmap=cmap)
+#    plt.ylabel('Frequency Bins')
+#    plt.xlabel('Samples')
+#    plt.show()
+#
+#def plot_vector(x):
+#    mesh = np.zeros((257, x.shape[0]))
+#    for i in range(x.shape[0]):
+#        mesh[256][i] = x[i] * 2500
+#        mesh[255][i] = x[i] * 2500
+#        mesh[254][i] = x[i] * 2500
+#    plot_matrix(mesh)
+#
+#def grayify_cmap(cmap):
+#    """Return a grayscale version of the colormap"""
+#    cmap = plt.cm.get_cmap(cmap)
+#    colors = cmap(np.arange(cmap.N))
+#
+#    # convert RGBA to perceived greyscale luminance
+#    # cf. http://alienryderflex.com/hsp.html
+#    RGB_weight = [0.299, 0.587, 0.114]
+#    luminance = np.sqrt(np.dot(colors[:, :3] ** 2, RGB_weight))
+#    colors[:, :3] = luminance[:, np.newaxis]
+#
+#    return cmap.from_list(cmap.name + "_grayscale", colors, cmap.N)

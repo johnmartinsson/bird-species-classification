@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from skimage import morphology
 import skimage.filters as filters
 import glob
@@ -138,10 +138,12 @@ def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""
     norm_spectrogram = normalize(spectrogram)
     binary_image = mark_cells_times_larger_than_median(norm_spectrogram, threshold)
 
+    """
     if save_as_image:
         plt.figure(1)
         utils.subplot_image(spectrogram, 411, "Spectrogram")
         utils.subplot_image(binary_image, 412, "Median Clipping")
+    """
 
     # closing binary image (dilation followed by erosion)
     binary_image = morphology.binary_closing(binary_image, selem=np.ones((4, 4)))
@@ -149,15 +151,17 @@ def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""
     # dialate binary image
     binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
 
+    """
     if save_as_image:
         utils.subplot_image(binary_image, 413, "Closing and Dilation")
-
+    """
     # apply median filter
     #binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
 
     # remove small objects
     binary_image = morphology.remove_small_objects(binary_image, min_size=32,
                                                    connectivity=1)
+    """
     if save_as_image:
         utils.subplot_image(binary_image, 414, "Small Objects Removed")
 
@@ -166,7 +170,7 @@ def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""
         fig.set_size_inches(10, 12)
         plt.tight_layout()
         fig.savefig(filename, dpi=100)
-
+    """
     # TODO: transpose is O(n^2)
     mask = np.array([np.max(col) for col in binary_image.T])
     mask = smooth_mask(mask)
