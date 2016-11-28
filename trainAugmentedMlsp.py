@@ -25,15 +25,15 @@ weight_file_path = "./weights/" + strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + 
 samplerate = 16000
 
 # Settings Mini Batch Generator
-nb_augmentation_samples = 5000
-nb_mini_baches = 20
+nb_augmentation_samples = 2500
+nb_mini_baches = 10
 nb_epoch_per_mini_batch = 25
 nb_segments_per_mini_batch = 1000
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
 # Setup compile
-sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=False)
 model.compile(loss='binary_crossentropy',
               optimizer=sgd,
               metrics=['fbeta_score'])
