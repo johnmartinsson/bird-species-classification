@@ -21,14 +21,10 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
     while i_batch_counter < nb_mini_baches:
         mini_batch = np.random.choice(augmentation_set, batch_size)
         signals_and_labels = [da.apply_augmentation(d) for d in mini_batch]
-        # extract labels
-        Y_train_aux = [l for (s, l) in signals_and_labels]
-        # convert to waves
-        X_train_aux = [s for (s, l) in signals_and_labels]
-        # convert to spectrograms
-        X_train = [utils.wave_to_spectrogram_aux(s, samplerate) for s in X_train_aux]
-        # convert to binary labels
-        Y_train = [id_labels2binary_labels(l, nb_classes) for l in Y_train_aux]
+        # prepare training samples
+        prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]
+        X_train = np.concatenate([ss for (ss, ls) in prepare_tmp])
+        Y_train = np.concatenate([ls for (ss, ls) in prepare_tmp])
         # force the garbage collector to clear unreferenced memory
         gc.collect()
         Y_train = np.array(Y_train)
@@ -37,6 +33,24 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
                                             X_train.shape[2], 1)
         yield  X_train, Y_train
         i_batch_counter += 1
+
+def prepare_training_sample(signal, labels, samplerate, nb_classes):
+    Sxx = utils.wave_to_spectrogram_aux(signal, samplerate)
+    segments = split_into_segments(Sxx, 512)
+    binary_labels = id_labels2binary_labels(labels, nb_classes)
+    # replicate labels for each signal segment
+    segment_labels = np.array([binary_labels,]*len(segments))
+    return segments, segment_labels
+
+
+def split_into_segments(s, segment_size):
+    signal_size = s.shape[1]
+    nb_padding = segment_size - (signal_size % segment_size)
+    padded_signal = np.lib.pad(s, ((0, 0), (0, nb_padding)), 'constant',
+                               constant_values=(0, 0))
+    nb_segments = padded_signal.shape[1]/segment_size
+    segments = np.split(padded_signal, nb_segments, axis=1)
+    return segments
 
 def load_noise_segment_filenames(data_filepath):
     noise_segment_filenames = [utils.get_basename_without_ext(f) for f in
@@ -101,61 +115,12 @@ def read_file2labels(file2labels_filepath):
                 labels[row[0]] = []
     return labels
 
-
-def load_data(data_filepath=None, file2labels_filepath=None, size=300,
-              nb_classes=19, image_shape=(1247, 257)):
-    if not os.path.isdir(data_filepath):
-        raise ValueError("data filepath is invalid")
-    if not os.path.isfile(file2labels_filepath):
-        nb_csvfiles = 0
-        # TODO: May be a performance issue with large datasets!
-        for f in os.listdir(data_filepath):
-            if f.endswith(".csv"):
-                nb_csvfiles+=1
-                file2labels_filepath=f
-        if nb_csvfiles > 1:
-            warnings.warn("There are multiple .csv files in dir: " + data_filepath)
-
-    labels = read_file2labels(file2labels_filepath)
-
-    batch = []
-    for i in range(size):
-        # TODO: should probably be without replacement
-        rand_data_file = random.choice(glob.glob(os.path.join(data_filepath,
-                                                              "*.wav.gz")))
-        basename = os.path.basename(rand_data_file)
-        basenameWithoutExtension = os.path.splitext(basename)[0]
-        rand_data_file_labels = labels[basenameWithoutExtension]
-        batch.append({'file_name':rand_data_file,
-                      'labels':rand_data_file_labels})
-
-    spec_cols, spec_rows = image_shape
-    X_train = np.array([]).reshape(0, spec_rows, spec_cols)
-    Y_train = np.array([]).reshape(0, nb_classes)
-    for sample in batch:
-        fs, wave = utils.read_gzip_wave_file(sample['file_name'])
-        (f, t, Sxx) = utils.wave_to_spectrogram(wave=wave, fs=fs)
-        y = [int(x) for x in sample['labels']]
-        y = id_labels2binary_labels(y, nb_classes)
-        X_train = np.concatenate((X_train, np.array([Sxx])), axis=0)
-        Y_train = np.concatenate((Y_train, np.array([y])), axis=0)
-
-    X_train = X_train.reshape(X_train.shape[0], spec_rows, spec_cols, 1)
-    return X_train, Y_train
-
-def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
+def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
                  image_shape=(32, 32)):
     if not os.path.isdir(data_filepath):
         raise ValueError("data filepath is invalid")
     if not os.path.isfile(file2labels_filepath):
-        nb_csvfiles = 0
-        # TODO: May be a performance issue with large datasets!
-        for f in os.listdir(data_filepath):
-            if f.endswith(".csv"):
-                nb_csvfiles+=1
-                file2labels_filepath=f
-        if nb_csvfiles > 1:
-            warnings.warn("There are multiple .csv files in dir: " + data_filepath)
+        raise ValueError("file2labels filepath is not valid")
 
     labels = read_file2labels(file2labels_filepath)
     batch = []
@@ -167,20 +132,17 @@ def load_all_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
         batch.append({'file_name':data_file,
                       'labels':data_file_labels})
 
-    spec_cols, spec_rows = image_shape
-    #X_train = np.array([]).reshape(0, spec_rows, spec_cols)
-    #Y_train = np.array([]).reshape(0, nb_classes)
     X_train = []
     Y_train = []
     for sample in batch:
         fs, wave = utils.read_gzip_wave_file(sample['file_name'])
-        (f, t, Sxx) = utils.wave_to_spectrogram(wave=wave, fs=fs)
         y = [int(x) for x in sample['labels']]
-        y = id_labels2binary_labels(y, nb_classes)
-        #X_train = np.concatenate((X_train, np.array([Sxx])), axis=0)
-        #Y_train = np.concatenate((Y_train, np.array([y])), axis=0)
-        X_train.append(Sxx)
-        Y_train.append(y)
+        signal_segments, signal_segment_labels = prepare_training_sample(wave, y, fs, nb_classes)
+        X_train.append(signal_segments)
+        Y_train.append(signal_segment_labels)
+
+    X_train = np.concatenate(X_train)
+    Y_train = np.concatenate(Y_train)
 
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)

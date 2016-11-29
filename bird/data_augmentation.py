@@ -31,14 +31,32 @@ def find_same_labels_filepaths(file2labels, labels):
             same_class_files.append(key)
     return same_class_files
 
+def fit_to_size(x, size):
+    x_size = x.shape[0]
+    if x_size < size:
+        nb_repeats = int(np.ceil(size/x_size))
+        x_tmp = np.tile(x, nb_repeats)
+        x_new = x_tmp[:size]
+        return x_new
+    elif x_size > size:
+        x_new = x[:size]
+        return x_new
+    else:
+        return x
+
 def apply_augmentation(augmentation_dict, time_shift=True):
     """ Load the wave segments from file and apply the augmentation
     """
     fs, s1 = utils.read_gzip_wave_file(augmentation_dict['signal_filepath'])
     fs, s2 = utils.read_gzip_wave_file(augmentation_dict['augmentation_signal_filepath'])
+
+    ma_s = max(s1.shape[0], s2.shape[0])
+
     noise_segments_aux = map(utils.read_gzip_wave_file, augmentation_dict['augmentation_noise_filepaths'])
     noise_segments = [n for (fs, n) in noise_segments_aux]
     augmentation_segments = [s1, s2] + noise_segments
+    # fit all of them to the size of the largest signal
+    augmentation_segments = [fit_to_size(s, ma_s) for s in augmentation_segments]
     s_aug = reduce(lambda s1, s2: additively_combine_narrays(s1, s2), augmentation_segments)
 
     # time shift signal

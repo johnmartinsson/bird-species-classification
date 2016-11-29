@@ -11,7 +11,7 @@ from bird import utils
 from bird import loader
 
 def preprocess_data_set(data_path, output_directory):
-    wave_files = glob.glob(os.path.join(data_path, "*.wav"))
+    wave_files = glob.glob(os.path.join(data_path, "*.wav.gz"))
     file2labels_path = os.path.join(data_path, "file2labels.csv")
 
     file2labels = loader.read_file2labels(file2labels_path);
@@ -39,34 +39,23 @@ def preprocess_wave(wave, fs):
     signal_wave = extract_masked_part_from_wave(s_mask_scaled, wave)
     noise_wave = extract_masked_part_from_wave(n_mask_scaled, wave)
 
-    chunk_size = 512 * 128
-    signal_wave_padded = zero_pad_wave(signal_wave, chunk_size)
-    noise_wave_padded = zero_pad_wave(noise_wave, chunk_size)
-
-    signal_chunks = split_into_chunks(signal_wave_padded, chunk_size)
-    noise_chunks = split_into_chunks(noise_wave_padded, chunk_size)
-
-    return signal_chunks, noise_chunks
+    return signal_wave, signal_wave
 
 def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
-    basename = os.path.splitext(os.path.basename(filename))[0]
-    fs, x = utils.read_wave_file(filename)
-    signal_chunks, noise_chunks = preprocess_wave(x, fs)
+    basename = utils.get_basename_without_ext(filename)
+    fs, x = utils.read_gzip_wave_file(filename)
+    signal_wave, noise_wave = preprocess_wave(x, fs)
 
-    i_chunk = 0
-    for s in signal_chunks:
+    if len(signal_wave) > 0:
         filename_chunk = os.path.join(output_directory, basename +
-                                      "_signal_chunk_" + str(i_chunk) + ".wav")
-        utils.write_wave_to_file(filename_chunk, fs, s)
+                                      "_signal_chunk.wav")
+        utils.write_wave_to_file(filename_chunk, fs, signal_wave)
         file2labelswriter.writerow([utils.get_basename_without_ext(filename_chunk)] + labels)
-        i_chunk += 1
 
-    i_chunk = 0
-    for s in noise_chunks:
+    if len(noise_wave) > 0:
         filename_chunk = os.path.join(output_directory, basename +
-                                      "_noise_chunk_" + str(i_chunk) + ".wav")
-        utils.write_wave_to_file(filename_chunk, fs, s)
-        i_chunk += 1
+                                      "_noise_chunk.wav")
+        utils.write_wave_to_file(filename_chunk, fs, noise_wave)
 
 def split_into_chunks(array, chunk_size):
     nb_chunks = array.shape[0]/chunk_size
