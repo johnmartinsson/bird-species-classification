@@ -47,17 +47,23 @@ def fit_to_size(x, size):
 def apply_augmentation(augmentation_dict, time_shift=True):
     """ Load the wave segments from file and apply the augmentation
     """
+    noise_dampening_factor = 0.4
+    alpha = np.random.rand()
+
     fs, s1 = utils.read_gzip_wave_file(augmentation_dict['signal_filepath'])
     fs, s2 = utils.read_gzip_wave_file(augmentation_dict['augmentation_signal_filepath'])
 
+    # get max signal length
     ma_s = max(s1.shape[0], s2.shape[0])
 
     noise_segments_aux = map(utils.read_gzip_wave_file, augmentation_dict['augmentation_noise_filepaths'])
-    noise_segments = [n for (fs, n) in noise_segments_aux]
-    augmentation_segments = [s1, s2] + noise_segments
-    # fit all of them to the size of the largest signal
+    noise_segments = [n*noise_dampening_factor for (fs, n) in noise_segments_aux]
+
+    augmentation_segments = [alpha*s1, (1.0-alpha)*s2] + noise_segments
+    # fit all of them to the size of the largest signal by cycle until equal
+    # length
     augmentation_segments = [fit_to_size(s, ma_s) for s in augmentation_segments]
-    s_aug = reduce(lambda s1, s2: additively_combine_narrays(s1, s2), augmentation_segments)
+    s_aug = reduce(lambda s1, s2: s1 + s2, augmentation_segments)
 
     # time shift signal
     if time_shift:
@@ -67,18 +73,6 @@ def apply_augmentation(augmentation_dict, time_shift=True):
     labels = [int(l) for l in labels]
     # return augmented signal and its labels
     return (s_aug, labels)
-
-def additively_combine_narrays(narr1, narr2):
-    """ Additively combine two narrays using a random weight
-    # Arguments
-        narr1    : a narray
-        narr2    : a narray
-    # Returns
-        out     : the combined and rescaled narray
-    """
-    alpha = np.random.rand()
-    combined_narray = alpha*narr1 + (1.0-alpha)*narr2
-    return combined_narray
 
 def create_augmentation_dict(signal_filename, noise_segment_filenames, file2labels):
     """ Create a dict with the paths to the signal segments that should be used

@@ -15,7 +15,7 @@ from bird.models.cuberun import CubeRun
 batch_size = 16
 nb_classes = 19
 batch_size = 8
-input_shape = (257, 509)
+input_shape = (257, 512)
 (image_height, image_width) = input_shape
 train_path = "./datasets/mlsp2013/train_preprocessed";
 labels_path = "./datasets/mlsp2013/train_preprocessed/file2labels.csv";
@@ -40,7 +40,7 @@ model.compile(loss='binary_crossentropy',
 
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 # load the data
-X_valid, Y_valid = loader.load_all_data(test_path, test_labels_path, nb_classes,
+X_valid, Y_valid = loader.load_validation_data(test_path, test_labels_path, nb_classes,
                                         input_shape)
 
 
