@@ -31,8 +31,8 @@ def CubeRun(nb_classes, input_shape):
     else:
         bn_axis = 3
 
-    x = ZeroPadding2D((2, 2))(img_input)
-    x = Dropout(0.2)(x)
+    #x = ZeroPadding2D((2, 2))(img_input)
+    x = Dropout(0.2)(img_input)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
 
     # conv (64 5x5 kernels, stride size 2x1)

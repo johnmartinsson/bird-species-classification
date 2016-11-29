@@ -9,6 +9,8 @@ from bird import utils
 from functools import reduce
 
 def time_shift_signal(wave):
+    """ Shift a wave in the time-domain at random
+    """
     size = wave.shape[0]
     shift_at_time = np.random.randint(0, size)
     return np.roll(wave, shift_at_time)
@@ -32,6 +34,9 @@ def find_same_labels_filepaths(file2labels, labels):
     return same_class_files
 
 def fit_to_size(x, size):
+    """ Fit an array to a specified size by either repeating the array, or
+    taking the size first elements from the array
+    """
     x_size = x.shape[0]
     if x_size < size:
         nb_repeats = int(np.ceil(size/x_size))
@@ -45,30 +50,33 @@ def fit_to_size(x, size):
         return x
 
 def apply_augmentation(augmentation_dict, time_shift=True):
-    """ Load the wave segments from file and apply the augmentation
+    """ Load the wave from file and apply the augmentation
     """
     noise_dampening_factor = 0.4
     alpha = np.random.rand()
 
+    # load the signals
     fs, s1 = utils.read_gzip_wave_file(augmentation_dict['signal_filepath'])
     fs, s2 = utils.read_gzip_wave_file(augmentation_dict['augmentation_signal_filepath'])
 
     # get max signal length
     ma_s = max(s1.shape[0], s2.shape[0])
 
+    # load the noise
     noise_segments_aux = map(utils.read_gzip_wave_file, augmentation_dict['augmentation_noise_filepaths'])
     noise_segments = [n*noise_dampening_factor for (fs, n) in noise_segments_aux]
 
     augmentation_segments = [alpha*s1, (1.0-alpha)*s2] + noise_segments
-    # fit all of them to the size of the largest signal by cycle until equal
-    # length
+    # fit them to the size of the largest signal by cycle until equal length
     augmentation_segments = [fit_to_size(s, ma_s) for s in augmentation_segments]
+    # additively combine them
     s_aug = reduce(lambda s1, s2: s1 + s2, augmentation_segments)
 
     # time shift signal
     if time_shift:
         s_aug = time_shift_signal(s_aug)
 
+    # load the labels
     labels = augmentation_dict['labels']
     labels = [int(l) for l in labels]
     # return augmented signal and its labels
@@ -100,11 +108,6 @@ def create_augmentation_dict(signal_filename, noise_segment_filenames, file2labe
                                         replace=False)[0]
 
     augmentation_noise_filenames = np.random.choice(noise_segment_filenames, nb_noise_segments, replace=False)
-
-    # reconstruct relative paths
-    #signal1_relative_filepath = os.path.join(data_path, signal1_filepath + ".wav")
-    #signal2_relative_filepath = os.path.join(data_path, signal2_filepath + ".wav")
-    #noise_relative_filepaths = [os.path.join(data_path, n_path) for n_path in noise_filepaths]
 
     # create the dict
     augmentation_dict = {
