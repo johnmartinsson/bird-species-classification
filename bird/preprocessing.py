@@ -28,6 +28,9 @@ def preprocess_data_set(data_path, output_directory):
                                   file2labelswriter)
 
 def preprocess_wave(wave, fs):
+    """ Preprocess a signal by computing the noise and signal mask of the
+    signal, and extracting each part from the signal
+    """
     (t, f, Sxx) = utils.wave_to_spectrogram(wave, fs)
 
     n_mask = compute_noise_mask(Sxx)
@@ -39,7 +42,7 @@ def preprocess_wave(wave, fs):
     signal_wave = extract_masked_part_from_wave(s_mask_scaled, wave)
     noise_wave = extract_masked_part_from_wave(n_mask_scaled, wave)
 
-    return signal_wave, signal_wave
+    return signal_wave, noise_wave
 
 def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
     basename = utils.get_basename_without_ext(filename)
@@ -56,16 +59,6 @@ def preprocess_sound_file(filename, output_directory, labels, file2labelswriter)
         filename_chunk = os.path.join(output_directory, basename +
                                       "_noise_chunk.wav")
         utils.write_wave_to_file(filename_chunk, fs, noise_wave)
-
-def split_into_chunks(array, chunk_size):
-    nb_chunks = array.shape[0]/chunk_size
-
-    return np.split(array, nb_chunks)
-
-def zero_pad_wave(wave, chunk_size):
-    nb_wave = wave.shape[0]
-    nb_padding = chunk_size - (nb_wave % chunk_size)
-    return np.lib.pad(wave, (0, nb_padding), 'constant', constant_values=(0, 0))
 
 def extract_noise_part(spectrogram):
     """ Extract the noise part of a spectrogram
@@ -229,17 +222,6 @@ def mark_cells_times_larger_than_median(spectrogram, number_times_larger):
     # create binary image with cells number_times_larger row AND col median
     binary_image = np.logical_and(larger_row_median, larger_col_median)
     return binary_image
-
-def remove_low_and_high_frequency_bins(spectrogram, nb_low=5, nb_high=25):
-    """ Removes low and high frequency bins from a spectrogram
-
-    # Argmuents
-        nb_low  : the number of lower frequency bins to remove
-        nb_high : the number of higher frequency bins to remove
-    # Returns
-        spectrogram : the narrowed spectrogram
-    """
-    return spectrogram[nb_low:spectrogram.shape[0]-nb_high]
 
 def normalize(X):
     """ Normalize numpy array to interval [0, 1]
