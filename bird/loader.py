@@ -60,8 +60,9 @@ def prepare_training_sample(signal, labels, samplerate, nb_classes, shift=True):
     Sxx = utils.wave_to_log_spectrogram_aux(signal, samplerate)
 
     # TODO: I could time/pitch shift the samples here instead
-    Sxx = da.time_shift_spectrogram(Sxx)
-    Sxx = da.pitch_shift_spectrogram(Sxx)
+    if shift:
+        Sxx = da.time_shift_spectrogram(Sxx)
+	Sxx = da.pitch_shift_spectrogram(Sxx)
 
     # remove lowest and highest frequency bins
     #Sxx = remove_low_and_high_frequency_bins(Sxx, nb_low=4, nb_high=25)
