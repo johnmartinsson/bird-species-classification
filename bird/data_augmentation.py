@@ -18,6 +18,24 @@ def time_shift_signal(wave):
 def pitch_shift_signal(spectrogram):
     return
 
+def time_shift_spectrogram(spectrogram):
+    """ Shift a spectrogram along the time axis in the spectral-domain at random
+    """
+    nb_cols = spectrogram.shape[1]
+    nb_shifts = np.random.randint(0, nb_cols)
+
+    return np.roll(spectrogram, nb_shifts, axis=1)
+
+def pitch_shift_spectrogram(spectrogram):
+    """ Shift a spectrogram along the frequency axis in the spectral-domain at
+    random
+    """
+    nb_cols = spectrogram.shape[0]
+    max_shifts = nb_cols//20 # around 5% shift
+    nb_shifts = np.random.randint(0, max_shifts)
+
+    return np.roll(spectrogram, nb_shifts, axis=0)
+
 def find_same_labels_filepaths(file2labels, labels):
     """ Finds the audio segments which has the same labels as the labels
     supplied
