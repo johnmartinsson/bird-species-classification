@@ -22,7 +22,7 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
                                                nb_augmentation_samples)
     while i_batch_counter < nb_mini_baches:
         mini_batch = np.random.choice(augmentation_set, batch_size)
-        signals_and_labels = [da.apply_augmentation(d) for d in mini_batch]
+        signals_and_labels = [da.apply_augmentation(d, time_shift=False) for d in mini_batch]
         # prepare training samples
         prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]
         X_train = np.concatenate([ss for (ss, ls) in prepare_tmp])
@@ -54,7 +54,12 @@ def prepare_training_sample(signal, labels, samplerate, nb_classes):
     """
 
     # convert signal into the spectral domain
-    Sxx = utils.wave_to_spectrogram_aux(signal, samplerate)
+    Sxx = utils.wave_to_log_spectrogram_aux(signal, samplerate)
+
+    # TODO: I could time/pitch shift the samples here instead
+    Sxx = da.time_shift_spectrogram(Sxx)
+    Sxx = da.pitch_shift_spectrogram(Sxx)
+
     # remove lowest and highest frequency bins
     #Sxx = remove_low_and_high_frequency_bins(Sxx, nb_low=4, nb_high=25)
 
