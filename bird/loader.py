@@ -47,7 +47,10 @@ def remove_low_and_high_frequency_bins(spectrogram, nb_low=5, nb_high=25):
     """
     return spectrogram[nb_low:spectrogram.shape[0]-nb_high]
 
-def prepare_training_sample(signal, labels, samplerate, nb_classes):
+def prepare_validation_sample(signal, labels, samplerate, nb_classes):
+    return prepare_training_sample(signal, labels, samplerate, nb_classes, shift=False)
+
+def prepare_training_sample(signal, labels, samplerate, nb_classes, shift=True):
     """ Prepare training sample by conversion into the spectral domain, and by
     splitting it into equal segments. The last segment is zero padded to the
     desired size.
@@ -187,7 +190,7 @@ def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_class
     for sample in batch:
         fs, wave = utils.read_gzip_wave_file(sample['file_name'])
         y = [int(x) for x in sample['labels']]
-        signal_segments, signal_segment_labels = prepare_training_sample(wave, y, fs, nb_classes)
+        signal_segments, signal_segment_labels = prepare_validation_sample(wave, y, fs, nb_classes)
         X_train.append(signal_segments)
         Y_train.append(signal_segment_labels)
 
