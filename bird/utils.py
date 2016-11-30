@@ -101,7 +101,7 @@ def wave_to_spectrogram_aux(wave, fs):
 def wave_to_log_spectrogram_aux(wave, fs):
     """ Compute a log magnitude spectrogram from the given signal
     """
-    Sxx = wave_to_spectrogram(wave, fs)
+    Sxx = wave_to_spectrogram_aux(wave, fs)
     return np.log(Sxx)
 
 def compute_and_save_mask_as_image_from_file(filename):
