@@ -32,7 +32,7 @@ def pitch_shift_spectrogram(spectrogram):
     """
     nb_cols = spectrogram.shape[0]
     max_shifts = nb_cols//20 # around 5% shift
-    nb_shifts = np.random.randint(0, max_shifts)
+    nb_shifts = np.random.randint(-max_shifts, max_shifts)
 
     return np.roll(spectrogram, nb_shifts, axis=0)
 
