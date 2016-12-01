@@ -167,6 +167,30 @@ def read_file2labels(file2labels_filepath):
                 labels[row[0]] = []
     return labels
 
+def load_test_data(data_filepath, file2labels_filepath, nb_classes):
+    if not os.path.isdir(data_filepath):
+        raise ValueError("data filepath is invalid")
+    if not os.path.isfile(file2labels_filepath):
+        raise ValueError("file2labels filepath is not valid")
+
+    labels = read_file2labels(file2labels_filepath)
+    all_data_files = glob.glob(os.path.join(data_filepath, "*.wav.gz"))
+
+    X_test = []
+    Y_test = []
+    for data_file in all_data_files:
+        basename = utils.get_basename_without_ext(data_file)
+        data_file_labels = labels[basename]
+
+        fs, wave = utils.read_gzip_wave_file(data_file)
+        categorical_labels = [int(x) for x in data_file_labels]
+
+        signal_segments, signal_segment_labels = prepare_validation_sample(wave, categorical_labels, fs, nb_classes)
+        X_test.append(np.asarray(signal_segments))
+        Y_test.append(np.asarray(signal_segment_labels))
+
+    return X_test, Y_test
+
 def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
                  image_shape=(32, 32)):
     """ Load the validation data
@@ -186,23 +210,24 @@ def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_class
         batch.append({'file_name':data_file,
                       'labels':data_file_labels})
 
-    X_train = []
-    Y_train = []
+    X_valid = []
+    Y_valid = []
     for sample in batch:
         fs, wave = utils.read_gzip_wave_file(sample['file_name'])
         y = [int(x) for x in sample['labels']]
         signal_segments, signal_segment_labels = prepare_validation_sample(wave, y, fs, nb_classes)
-        X_train.append(signal_segments)
-        Y_train.append(signal_segment_labels)
+        X_valid.append(signal_segments)
+        Y_valid.append(signal_segment_labels)
 
-    X_train = np.concatenate(X_train)
-    Y_train = np.concatenate(Y_train)
+    X_valid = np.concatenate(X_valid)
+    Y_valid = np.concatenate(Y_valid)
 
-    X_train = np.array(X_train)
-    Y_train = np.array(Y_train)
-    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1],
-                              X_train.shape[2], 1)
-    return X_train, Y_train
+    X_valid = np.array(X_valid)
+    Y_valid = np.array(Y_valid)
+
+    X_valid = X_valid.reshape(X_valid.shape[0], X_valid.shape[1],
+                              X_valid.shape[2], 1)
+    return X_valid, Y_valid
 
 def id_labels2binary_labels(labels, nb_classes):
     """ Convert categorical labels to binary labels
