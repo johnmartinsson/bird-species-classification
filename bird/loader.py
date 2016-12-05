@@ -57,7 +57,7 @@ def prepare_training_sample(signal, labels, samplerate, nb_classes, shift=True):
     """
 
     # convert signal into the spectral domain
-    Sxx = utils.wave_to_log_spectrogram_aux(signal, samplerate)
+    Sxx = utils.wave_to_spectrogram_aux(signal, samplerate)
 
     # TODO: I could time/pitch shift the samples here instead
     if shift:
