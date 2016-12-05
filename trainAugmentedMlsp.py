@@ -28,22 +28,21 @@ samplerate = 16000
 
 # Settings Mini Batch Generator
 nb_augmentation_samples = 10000
-nb_mini_baches = 20
+nb_mini_baches = 25
 nb_epoch_per_mini_batch = 10
-nb_segments_per_mini_batch = 300
+nb_segments_per_mini_batch = 250
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
 # Setup compile
-sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
-              optimizer='adadelta',
+              optimizer=sgd,
               metrics=['accuracy'])
 
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 # load the data
-X_valid, Y_valid = loader.load_validation_data(valid_path, valid_labels_path, nb_classes,
-                                        input_shape)
+X_valid, Y_valid = loader.load_validation_data(valid_path, valid_labels_path, nb_classes)
 
 
 mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,

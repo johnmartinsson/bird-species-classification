@@ -191,8 +191,7 @@ def load_test_data(data_filepath, file2labels_filepath, nb_classes):
 
     return X_test, Y_test
 
-def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_classes=10,
-                 image_shape=(32, 32)):
+def load_validation_data(data_filepath=None, file2labels_filepath=None, nb_classes=10):
     """ Load the validation data
     """
     if not os.path.isdir(data_filepath):
