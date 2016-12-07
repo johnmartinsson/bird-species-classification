@@ -3,6 +3,7 @@ import numpy as np
 np.random.seed(42)
 
 import os
+import keras
 from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
@@ -28,9 +29,27 @@ samplerate = 16000
 
 # Settings Mini Batch Generator
 nb_augmentation_samples = 5000
-nb_mini_baches = 40
-nb_epoch_per_mini_batch = 5
-nb_segments_per_mini_batch = 200
+nb_mini_baches = 1
+nb_epoch_per_mini_batch = 2
+nb_segments_per_mini_batch = 10
+
+
+# Setup Callbacks for History
+class HistoryCollector(keras.callbacks.Callback):
+    def __init__(self, name):
+        self.name = name
+
+    def on_train_begin(self, logs={}):
+        self.data = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.data.append(logs.get(self.name))
+
+
+trainLossHistory = HistoryCollector('loss')
+validLossHistory = HistoryCollector('val_loss')
+trainAccHistory = HistoryCollector('acc')
+validAccHistory = HistoryCollector('val_acc')
 
 model = CubeRun(nb_classes=nb_classes, input_shape=input_shape)
 
@@ -70,3 +89,4 @@ for X_train, Y_train in mini_batch_generator:
 model.save_weights(weight_file_path)
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 print ("The weights have been saved in: " + weight_file_path)
+print("Train loss: ", trainLossHistory.data)
