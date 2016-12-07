@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 
 import glob
 import tqdm
+import numpy as np
 
 from bird import utils
 
@@ -24,7 +25,8 @@ def img_spectrogram_from_wave_file(filepath):
     save_matrix_to_file(Sxx, "Amplitude Spectrogram", baseName + "_AMP.png")
 
 def save_matrix_to_file(Sxx, title, filename):
-    cmap = plt.cm.get_cmap('jet')
+    #cmap = plt.cm.get_cmap('jet')
+    cmap = grayify_cmap('cubehelix_r')
     fig = plt.figure()
     fig.suptitle(title, fontsize=12)
     plt.pcolormesh(Sxx, cmap=cmap)
