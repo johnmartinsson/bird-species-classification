@@ -83,7 +83,7 @@ def binary_to_id(Y):
     return r
 
 model = CubeRun(nb_classes, input_shape)
-model.load_weights("./weights/2016_12_06_14:07:41_cuberun.h5")
+model.load_weights("./weights/2016_12_05_21:10:41_cuberun.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 evaluate(model, "./datasets/birdClef2016Subset_preprocessed/valid",
          "datasets/birdClef2016Subset_preprocessed/valid/file2labels.csv")
