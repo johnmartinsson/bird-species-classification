@@ -1,5 +1,6 @@
 from matplotlib import pyplot as plt
 
+import pickle
 import glob
 import tqdm
 import numpy as np
@@ -36,6 +37,27 @@ def save_matrix_to_file(Sxx, title, filename):
     # close
     plt.clf()
     plt.close()
+
+def plot_history_to_image_file(pickle_path):
+    with open(pickle_path, 'rb') as input:
+        trainLoss = pickle.load(input)
+        validLoss = pickle.load(input)
+        trainAcc = pickle.load(input)
+        validAcc = pickle.load(input)
+        plt.figure(1)
+        plt.subplot(211)
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.plot(trainLoss, 'v', label="train")
+        plt.plot(validLoss, 'o', label="valid")
+        plt.legend(loc="upper_left")
+        plt.subplot(212)
+        plt.ylabel("Accuracy")
+        plt.xlabel("Epoch")
+        plt.plot(trainAcc, 'v', label="train")
+        plt.plot(validAcc, 'o', label="valid")
+        plt.legend(loc="upper_left")
+        plt.show()
 
 def plot_log_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
