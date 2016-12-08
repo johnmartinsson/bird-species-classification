@@ -95,4 +95,4 @@ def wave_to_log_spectrogram_aux(wave, fs):
     """ Compute a log magnitude spectrogram from the given signal
     """
     Sxx = wave_to_spectrogram_aux(wave, fs)
-    return np.log10(Sxx + 0.001)
+    return np.log(Sxx)
