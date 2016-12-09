@@ -29,20 +29,19 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
         yield  X_train, Y_train
         i_batch_counter += 1
 
-def augmented_batch_generator():
+def augmented_batch_generator(data_filepath, file2labels_filepath, samplerate, nb_mini_batches, nb_classes):
 
     i_batch_counter = 0
     while i_batch_counter < nb_mini_batches:
         augmentation_set = create_augmentation_set_new(data_filepath,
-                                                       file2labels_filepath,
-                                                       nb_mini_batches)
+                                                       file2labels_filepath)
         mini_batch = augmentation_set
-        X_train, Y_train = mini_batch_to_training_data(mini_batch)
+        X_train, Y_train = mini_batch_to_training_data(mini_batch, samplerate, nb_classes)
 
         yield  X_train, Y_train
         i_batch_counter += 1
 
-def mini_batch_to_training_data(mini_batch):
+def mini_batch_to_training_data(mini_batch, samplerate, nb_classes):
         signals_and_labels = [da.apply_augmentation(d, time_shift=False) for d in mini_batch]
         # prepare training samples
         prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]

@@ -4,6 +4,7 @@ np.random.seed(42)
 
 import os
 import keras
+import pickle
 from keras import backend as K
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import SGD
@@ -29,20 +30,18 @@ samplerate = 16000
 
 # Settings Mini Batch Generator
 nb_augmentation_samples = 5000
-nb_mini_baches = 1
-nb_epoch_per_mini_batch = 2
-nb_segments_per_mini_batch = 10
+nb_mini_baches = 20
+nb_epoch_per_mini_batch = 5
+nb_segments_per_mini_batch = 200
 
 
 # Setup Callbacks for History
 class HistoryCollector(keras.callbacks.Callback):
     def __init__(self, name):
         self.name = name
-
-    def on_train_begin(self, logs={}):
         self.data = []
 
-    def on_batch_end(self, batch, logs={}):
+    def on_epoch_end(self, batch, logs={}):
         self.data.append(logs.get(self.name))
 
 
@@ -64,15 +63,17 @@ print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 X_valid, Y_valid = loader.load_validation_data(valid_path, valid_labels_path, nb_classes)
 
 
-mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
-                                              nb_mini_baches,
-                                              nb_segments_per_mini_batch,
-                                              train_path, train_labels_path,
-                                                   nb_classes, samplerate)
+augmented_batch_generator = loader.augmented_batch_generator(data_filepath, file2labels_filepath, samplerate, nb_mini_baches, nb_classes)
+
+#mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
+#                                              nb_mini_baches,
+#                                              nb_segments_per_mini_batch,
+#                                              train_path, train_labels_path,
+#                                                   nb_classes, samplerate)
 
 # fit the model to training data
 i_mini_batch = 1
-for X_train, Y_train in mini_batch_generator:
+for X_train, Y_train in augmented_batch_generator:
     if i_mini_batch == 30:
         sgd = SGD(lr=0.0001, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
@@ -80,7 +81,7 @@ for X_train, Y_train in mini_batch_generator:
     print("mini-batch: ", i_mini_batch, "/", nb_mini_baches)
     model.fit(X_train, Y_train, batch_size=batch_size,
               nb_epoch=nb_epoch_per_mini_batch, shuffle=True,
-              validation_data=(X_valid, Y_valid))
+              validation_data=(X_valid, Y_valid), callbacks=[trainLossHistory,validLossHistory,trainAccHistory, validAccHistory])
 
     i_mini_batch += 1
 
@@ -89,4 +90,10 @@ for X_train, Y_train in mini_batch_generator:
 model.save_weights(weight_file_path)
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 print ("The weights have been saved in: " + weight_file_path)
-print("Train loss: ", trainLossHistory.data)
+
+# save history to file
+with open('history.pkl', 'wb') as output:
+    pickle.dump(trainLossHistory.data, output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(validLossHistory.data, output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(trainAccHistory.data, output, pickle.HIGHEST_PROTOCOL)
+    pickle.dump(validAccHistory.data, output, pickle.HIGHEST_PROTOCOL)
