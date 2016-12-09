@@ -4,8 +4,12 @@ import pickle
 import glob
 import tqdm
 import numpy as np
+from skimage import morphology
 
 from bird import utils
+from bird import preprocessing as pp
+from bird import signal_processing as sp
+
 
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
@@ -24,6 +28,38 @@ def img_spectrogram_from_wave_file(filepath):
     Sxx = utils.wave_to_spectrogram_aux(x, fs)
     baseName = utils.get_basename_without_ext(filepath)
     save_matrix_to_file(Sxx, "Amplitude Spectrogram", baseName + "_AMP.png")
+
+def sprengel_binary_mask_from_wave_file(filepath):
+    fs, x = utils.read_gzip_wave_file(filepath)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)[256:]
+
+    # plot spectrogram
+    plt.figure(1)
+    subplot_image(Sxx, 411, "Spectrogram")
+
+    Sxx = pp.normalize(Sxx)
+    binary_image = pp.median_clipping(Sxx, 3.0)
+
+    subplot_image(binary_image + 0, 412, "Median Clipping")
+
+    binary_image = morphology.binary_erosion(binary_image, selem=np.ones((4, 4)))
+
+    subplot_image(binary_image + 0, 413, "Erosion")
+
+    binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
+
+    subplot_image(binary_image + 0, 414, "Dilation")
+    fig = plt.figure(1)
+
+    mask = np.array([np.max(col) for col in binary_image.T])
+    mask = morphology.binary_dilation(mask, np.ones(4))
+    mask = morphology.binary_dilation(mask, np.ones(4))
+
+    plot_vector(mask, "Mask")
+
+    fig.set_size_inches(10, 12)
+    plt.tight_layout()
+    fig.savefig(utils.get_basename_without_ext(filepath) + "_binary_mask.png", dpi=100)
 
 def save_matrix_to_file(Sxx, title, filename):
     #cmap = plt.cm.get_cmap('jet')
@@ -70,15 +106,15 @@ def plot_spectrogram_from_wave_file(filename):
     plot_matrix(Sxx, "Amplitude Spectrogram")
 
 def subplot_image(Sxx, n_subplot, title):
-    #cmap = grayify_cmap('cubehelix_r')
-    cmap = grayify_cmap('jet')
+    cmap = grayify_cmap('cubehelix_r')
+    # cmap = grayify_cmap('jet')
     plt.subplot(n_subplot)
     plt.title(title)
     plt.pcolormesh(Sxx, cmap=cmap)
 
 def plot_matrix(Sxx, title):
-    #cmap = grayify_cmap('cubehelix_r')
-    cmap = plt.cm.get_cmap('jet')
+    cmap = grayify_cmap('cubehelix_r')
+    # cmap = plt.cm.get_cmap('jet')
     fig = plt.figure()
     fig.suptitle(title, fontsize=12)
     plt.pcolormesh(Sxx, cmap=cmap)
@@ -86,13 +122,13 @@ def plot_matrix(Sxx, title):
     plt.xlabel('Window Samples')
     plt.show()
 
-def plot_vector(x):
+def plot_vector(x, title):
     mesh = np.zeros((257, x.shape[0]))
     for i in range(x.shape[0]):
         mesh[256][i] = x[i] * 2500
         mesh[255][i] = x[i] * 2500
         mesh[254][i] = x[i] * 2500
-    plot_matrix(mesh)
+    plot_matrix(mesh, title)
 
 def grayify_cmap(cmap):
     """Return a grayscale version of the colormap"""

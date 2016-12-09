@@ -1,5 +1,4 @@
 import numpy as np
-#import matplotlib.pyplot as plt
 from skimage import morphology
 import skimage.filters as filters
 import glob
@@ -92,7 +91,7 @@ def compute_signal_mask(spectrogram):
         binary_mask : the binary signal mask
     """
     threshold = 3
-    mask = compute_binary_mask(spectrogram, threshold)
+    mask = compute_binary_mask_sprengel(spectrogram, threshold)
     return mask
 
 def compute_noise_mask(spectrogram):
@@ -105,11 +104,11 @@ def compute_noise_mask(spectrogram):
         binary_mask : the binary noise mask
     """
     threshold = 2.5
-    mask = compute_binary_mask(spectrogram, threshold)
+    mask = compute_binary_mask_sprengel(spectrogram, threshold)
     # invert mask
     return np.logical_not(mask)
 
-def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""):
+def compute_binary_mask_sprengel(spectrogram, threshold):
     """ Computes a binary mask for the spectrogram
     # Arguments
         spectrogram : a numpy array representation of a spectrogram (2-dim)
@@ -117,15 +116,30 @@ def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""
     # Returns
         binary_mask : the binary mask
     """
+    # normalize to [0, 1)
     norm_spectrogram = normalize(spectrogram)
-    binary_image = mark_cells_times_larger_than_median(norm_spectrogram, threshold)
 
-    """
-    if save_as_image:
-        plt.figure(1)
-        utils.subplot_image(spectrogram, 411, "Spectrogram")
-        utils.subplot_image(binary_image, 412, "Median Clipping")
-    """
+    # median clipping
+    binary_image = median_clipping(norm_spectrogram, threshold)
+
+    # erosion
+    binary_image = morphology.binary_erosion(binary_image, selem=np.ones((4, 4)))
+
+    # dilation
+    binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
+
+    # extract mask
+    mask = np.array([np.max(col) for col in binary_image.T])
+    mask = smooth_mask(mask)
+
+    return mask
+
+def compute_binary_mask_lasseck(spectrogram, threshold):
+    # normalize to [0, 1)
+    norm_spectrogram = normalize(spectrogram)
+
+    # median clipping
+    binary_image = median_clipping(norm_spectrogram, threshold)
 
     # closing binary image (dilation followed by erosion)
     binary_image = morphology.binary_closing(binary_image, selem=np.ones((4, 4)))
@@ -133,31 +147,17 @@ def compute_binary_mask(spectrogram, threshold, save_as_image=False, filename=""
     # dialate binary image
     binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
 
-    """
-    if save_as_image:
-        utils.subplot_image(binary_image, 413, "Closing and Dilation")
-    """
     # apply median filter
-    #binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
+    binary_image = filters.median(binary_image, selem=np.ones((2, 2)))
 
     # remove small objects
-    binary_image = morphology.remove_small_objects(binary_image, min_size=32,
-                                                   connectivity=1)
-    """
-    if save_as_image:
-        utils.subplot_image(binary_image, 414, "Small Objects Removed")
+    binary_image = morphology.remove_small_objects(binary_image, min_size=32, connectivity=1)
 
-    if save_as_image:
-        fig = plt.figure(1)
-        fig.set_size_inches(10, 12)
-        plt.tight_layout()
-        fig.savefig(filename, dpi=100)
-    """
-    # TODO: transpose is O(n^2)
     mask = np.array([np.max(col) for col in binary_image.T])
     mask = smooth_mask(mask)
 
     return mask
+
 
 # TODO: This method needs some real testing
 def reshape_binary_mask(mask, size):
@@ -203,7 +203,7 @@ def smooth_mask(mask):
     # type casting is a bitch
     return mask
 
-def mark_cells_times_larger_than_median(spectrogram, number_times_larger):
+def median_clipping(spectrogram, number_times_larger):
     """ Compute binary image from spectrogram where cells are marked as 1 if
     number_times_larger than the row AND column median, otherwise 0
     """
