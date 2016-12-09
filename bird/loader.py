@@ -23,6 +23,26 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
                                                nb_augmentation_samples)
     while i_batch_counter < nb_mini_baches:
         mini_batch = np.random.choice(augmentation_set, batch_size)
+
+        X_train, Y_train = mini_batch_to_training_data(mini_batch)
+
+        yield  X_train, Y_train
+        i_batch_counter += 1
+
+def augmented_batch_generator():
+
+    i_batch_counter = 0
+    while i_batch_counter < nb_mini_batches:
+        augmentation_set = create_augmentation_set_new(data_filepath,
+                                                       file2labels_filepath,
+                                                       nb_mini_batches)
+        mini_batch = augmentation_set
+        X_train, Y_train = mini_batch_to_training_data(mini_batch)
+
+        yield  X_train, Y_train
+        i_batch_counter += 1
+
+def mini_batch_to_training_data(mini_batch):
         signals_and_labels = [da.apply_augmentation(d, time_shift=False) for d in mini_batch]
         # prepare training samples
         prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]
@@ -34,19 +54,8 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
         X_train = np.array(X_train)
         X_train = X_train.reshape(X_train.shape[0], X_train.shape[1],
                                             X_train.shape[2], 1)
-        yield  X_train, Y_train
-        i_batch_counter += 1
+        return  X_train, Y_train
 
-def remove_low_and_high_frequency_bins(spectrogram, nb_low=5, nb_high=25):
-    """ Removes low and high frequency bins from a spectrogram
-
-    # Argmuents
-        nb_low  : the number of lower frequency bins to remove
-        nb_high : the number of higher frequency bins to remove
-    # Returns
-        spectrogram : the narrowed spectrogram
-    """
-    return spectrogram[nb_low:spectrogram.shape[0]-nb_high]
 
 def prepare_validation_sample(signal, labels, samplerate, nb_classes):
     return prepare_training_sample(signal, labels, samplerate, nb_classes, shift=False)
@@ -104,6 +113,22 @@ def load_signal_segment_filenames(data_filepath):
                             glob.glob(os.path.join(data_filepath, "*.wav.gz"))]
     return signal_segment_filenames
 
+def create_augmentation_set_new(data_filepath, file2labels_filepath):
+    """ Augment each training sample once """
+    signal_segment_filenames = load_signal_segment_filenames(data_filepath)
+    noise_segment_filenames = load_noise_segment_filenames(data_filepath)
+    file2labels = read_file2labels(file2labels_filepath)
+    augmentation_set = []
+
+    for signal_filename in signal_segment_filenames:
+        augmentation_dict = da.create_augmentation_dict(signal_filename,
+                                                        noise_segment_filenames,
+                                                        file2labels)
+        augmentation_dict = reconstruct_relative_paths(augmentation_dict,
+                                                       data_filepath)
+        augmentation_set.append(augmentation_dict)
+
+    return augmentation_set
 
 def create_augmentation_set(data_filepath, file2labels_filepath, nb_augmentation_dicts):
     """ Create an augmentation set with the specified number of augmentation dicts
