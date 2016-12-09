@@ -63,7 +63,11 @@ print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
 X_valid, Y_valid = loader.load_validation_data(valid_path, valid_labels_path, nb_classes)
 
 
-augmented_batch_generator = loader.augmented_batch_generator(data_filepath, file2labels_filepath, samplerate, nb_mini_baches, nb_classes)
+augmented_batch_generator = loader.augmented_batch_generator(train_path,
+                                                             train_labels_path,
+                                                             samplerate,
+                                                             nb_mini_baches,
+                                                             nb_classes)
 
 #mini_batch_generator = loader.mini_batch_generator(nb_augmentation_samples,
 #                                              nb_mini_baches,
