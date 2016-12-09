@@ -19,13 +19,13 @@ def compute_and_save_spectrograms_for_files(files):
 
 def img_log_spectrogram_from_wave_file(filepath):
     fs, x = utils.read_gzip_wave_file(filepath)
-    Sxx = utils.wave_to_log_spectrogram_aux(x, fs)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)
     baseName = utils.get_basename_without_ext(filepath)
     save_matrix_to_file(Sxx, "Log Amplitude Spectrogram", baseName + "_LOG.png")
 
 def img_spectrogram_from_wave_file(filepath):
     fs, x = utils.read_gzip_wave_file(filepath)
-    Sxx = utils.wave_to_spectrogram_aux(x, fs)
+    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)
     baseName = utils.get_basename_without_ext(filepath)
     save_matrix_to_file(Sxx, "Amplitude Spectrogram", baseName + "_AMP.png")
 
@@ -97,12 +97,12 @@ def plot_history_to_image_file(pickle_path):
 
 def plot_log_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
-    Sxx = utils.wave_to_log_spectrogram_aux(x, fs)
+    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)
     plot_matrix(Sxx, "Log Amplitude Spectrogram")
 
 def plot_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
-    Sxx = utils.wave_to_spectrogram_aux(x, fs)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)
     plot_matrix(Sxx, "Amplitude Spectrogram")
 
 def subplot_image(Sxx, n_subplot, title):

@@ -10,6 +10,7 @@ import glob
 
 from bird import utils
 from bird import data_augmentation as da
+from bird import signal_processing as sp
 
 def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
                          data_filepath, file2labels_filepath, nb_classes,
@@ -57,15 +58,12 @@ def prepare_training_sample(signal, labels, samplerate, nb_classes, shift=True):
     """
 
     # convert signal into the spectral domain
-    Sxx = utils.wave_to_log_spectrogram_aux(signal, samplerate)
+    Sxx = sp.wave_to_sample_spectrogram(signal, samplerate)
 
     # TODO: I could time/pitch shift the samples here instead
     if shift:
         Sxx = da.time_shift_spectrogram(Sxx)
-        #Sxx = da.pitch_shift_spectrogram(Sxx)
-
-    # remove lowest and highest frequency bins
-    Sxx = remove_low_and_high_frequency_bins(Sxx, nb_low=4, nb_high=0)
+        Sxx = da.pitch_shift_spectrogram(Sxx)
 
     # split the spectrogram into equal length segments
     segments = split_into_segments(Sxx, 512)
