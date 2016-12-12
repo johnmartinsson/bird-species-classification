@@ -19,15 +19,15 @@ def compute_and_save_spectrograms_for_files(files):
 
 def img_log_spectrogram_from_wave_file(filepath):
     fs, x = utils.read_gzip_wave_file(filepath)
-    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)[:256]
     baseName = utils.get_basename_without_ext(filepath)
-    save_matrix_to_file(Sxx, "Log Amplitude Spectrogram", baseName + "_LOG.png")
+    save_matrix_to_file(Sxx, "Amplitude Spectrogram", baseName + "_LOG.png")
 
 def img_spectrogram_from_wave_file(filepath):
     fs, x = utils.read_gzip_wave_file(filepath)
-    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)
+    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)[:256]
     baseName = utils.get_basename_without_ext(filepath)
-    save_matrix_to_file(Sxx, "Amplitude Spectrogram", baseName + "_AMP.png")
+    save_matrix_to_file(Sxx, "Log Amplitude Spectrogram", baseName + "_AMP.png")
 
 def sprengel_binary_mask_from_wave_file(filepath):
     fs, x = utils.read_gzip_wave_file(filepath)
@@ -62,8 +62,8 @@ def sprengel_binary_mask_from_wave_file(filepath):
     fig.savefig(utils.get_basename_without_ext(filepath) + "_binary_mask.png", dpi=100)
 
 def save_matrix_to_file(Sxx, title, filename):
-    #cmap = plt.cm.get_cmap('jet')
-    cmap = grayify_cmap('cubehelix_r')
+    cmap = plt.cm.get_cmap('jet')
+    #cmap = grayify_cmap('cubehelix_r')
     fig = plt.figure()
     fig.suptitle(title, fontsize=12)
     plt.pcolormesh(Sxx, cmap=cmap)
@@ -97,12 +97,14 @@ def plot_history_to_image_file(pickle_path):
 
 def plot_log_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
-    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)
+    Sxx = sp.wave_to_log_amplitude_spectrogram(x, fs, 512, 128)[:256]
+    Sxx2 = utils.wave_to_log_spectrogram_aux(x, fs)
     plot_matrix(Sxx, "Log Amplitude Spectrogram")
+    plot_matrix(Sxx2, "Log Amplitude Spectrogram (scipy)")
 
 def plot_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
-    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)[:256]
     plot_matrix(Sxx, "Amplitude Spectrogram")
 
 def subplot_image(Sxx, n_subplot, title):
@@ -113,8 +115,8 @@ def subplot_image(Sxx, n_subplot, title):
     plt.pcolormesh(Sxx, cmap=cmap)
 
 def plot_matrix(Sxx, title):
-    cmap = grayify_cmap('cubehelix_r')
-    # cmap = plt.cm.get_cmap('jet')
+    # cmap = grayify_cmap('cubehelix_r')
+    cmap = plt.cm.get_cmap('jet')
     fig = plt.figure()
     fig.suptitle(title, fontsize=12)
     plt.pcolormesh(Sxx, cmap=cmap)
