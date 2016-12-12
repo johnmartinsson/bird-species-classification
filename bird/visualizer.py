@@ -10,7 +10,6 @@ from bird import utils
 from bird import preprocessing as pp
 from bird import signal_processing as sp
 
-
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
     for (f, p) in zip(files, progress):
@@ -60,6 +59,36 @@ def sprengel_binary_mask_from_wave_file(filepath):
     fig.set_size_inches(10, 12)
     plt.tight_layout()
     fig.savefig(utils.get_basename_without_ext(filepath) + "_binary_mask.png", dpi=100)
+
+def signal_and_noise_spectrogram_from_wave_file(filepath):
+
+    (fs, wave) = utils.read_wave_file(filepath)
+    spectrogram = sp.wave_to_amplitude_spectrogram(wave, fs)
+    signal_wave, noise_wave = pp.preprocess_wave(wave, fs)
+    spectrogram_signal = sp.wave_to_log_amplitude_spectrogram(wave, fs)
+    spectrogram_noise = sp.wave_to_log_amplitude_spectrogram(wave, fs)
+
+    fig = plt.figure(1)
+    cmap = plt.cm.get_cmap('jet')
+    # whole spectrogram
+    plt.subplot(121)
+    plt.pcolormesh(spectrogram, cmap=cmap)
+    plt.title("Whole Sound")
+
+    plt.subplot(122)
+    plt.pcolormesh(spectrogram_signal, cmap=cmap)
+    plt.title("Signal Part")
+
+    plt.subplot(123)
+    plt.pcolormesh(spectrogram_noise, cmap=cmap)
+    plt.title("Noise Part")
+
+    basename = utils.get_basename_without_ext(filepath)
+    fig.savefig(basename+"_noise_signal.png")
+
+    # close
+    plt.clf()
+    plt.close()
 
 def save_matrix_to_file(Sxx, title, filename):
     #cmap = plt.cm.get_cmap('jet')
