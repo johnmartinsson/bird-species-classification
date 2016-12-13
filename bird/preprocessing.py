@@ -8,29 +8,62 @@ import tqdm
 
 from bird import utils
 from bird import loader
+from bird import signal_processing as sp
 
-def preprocess_data_set(data_path, output_directory):
-    wave_files = glob.glob(os.path.join(data_path, "*.wav.gz"))
-    file2labels_path = os.path.join(data_path, "file2labels.csv")
+# def preprocess_data_set(data_path, output_directory):
+    # wave_files = glob.glob(os.path.join(data_path, "*.wav.gz"))
+    # file2labels_path = os.path.join(data_path, "file2labels.csv")
 
-    file2labels = loader.read_file2labels(file2labels_path);
-    file2labels_path_new = os.path.join(output_directory, "file2labels.csv")
+    # file2labels = loader.read_file2labels(file2labels_path);
+    # file2labels_path_new = os.path.join(output_directory, "file2labels.csv")
 
-    with open(file2labels_path_new, 'w') as file2labels_csv:
-        file2labelswriter = csv.writer(file2labels_csv)
+    # with open(file2labels_path_new, 'w') as file2labels_csv:
+        # file2labelswriter = csv.writer(file2labels_csv)
 
-        progress = tqdm.tqdm(range(len(wave_files)))
-        for (f, p) in zip(wave_files, progress):
-            basename = utils.get_basename_without_ext(f)
-            labels = file2labels[basename]
-            preprocess_sound_file(f, output_directory, labels,
-                                  file2labelswriter)
+        # progress = tqdm.tqdm(range(len(wave_files)))
+        # for (f, p) in zip(wave_files, progress):
+            # basename = utils.get_basename_without_ext(f)
+            # labels = file2labels[basename]
+            # preprocess_sound_file(f, output_directory, labels,
+                                  # file2labelswriter)
+
+def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
+    samplerate, x = utils.read_wave_file(filename)
+    signal_wave, noise_wave = preprocess_wave(x, samplerate)
+    basename = utils.get_basename_without_ext(filename)
+
+    signal_segments = split_into_segments(x, samplerate, segment_size_seconds)
+    noise_segments = split_into_segments(x, samplerate, segment_size_seconds)
+    save_segments_to_file(class_dir, signal_segments, basename, samplerate)
+    save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
+
+def save_segments_to_file(output_dir, segments, basename, samplerate):
+    i_segment = 0
+    for segment in segments:
+        segment_filepath = os.path.join(output_dir, basename +
+                                        str(i_segment) + ".wav")
+        utils.write_wave_to_file(segment_filepath, samplerate, segment)
+        i_segment += 1
+
+def split_into_segments(wave, samplerate, segment_time):
+    """ Split a wave into segments of segment_size. Zero pad the last
+    segment.
+    """
+    segment_size = samplerate * segment_time
+    wave_size = wave.shape[0]
+
+    nb_repeat = segment_size - (wave_size % segment_size)
+    repeated_wave = np.tile(wave, 2)[:wave_size+nb_repeat]
+    nb_segments = repeated_wave.shape[0]/segment_size
+    segments = np.split(repeated_wave, nb_segments, axis=0)
+    return segments
+
 
 def preprocess_wave(wave, fs):
     """ Preprocess a signal by computing the noise and signal mask of the
     signal, and extracting each part from the signal
     """
-    (t, f, Sxx) = utils.wave_to_spectrogram(wave, fs)
+    Sxx = sp.wave_to_amplitude_spectrogram(wave, fs, 512, 128)
 
     n_mask = compute_noise_mask(Sxx)
     s_mask = compute_signal_mask(Sxx)
@@ -42,22 +75,6 @@ def preprocess_wave(wave, fs):
     noise_wave = extract_masked_part_from_wave(n_mask_scaled, wave)
 
     return signal_wave, noise_wave
-
-def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
-    basename = utils.get_basename_without_ext(filename)
-    fs, x = utils.read_gzip_wave_file(filename)
-    signal_wave, noise_wave = preprocess_wave(x, fs)
-
-    if len(signal_wave) > 0:
-        filename_chunk = os.path.join(output_directory, basename +
-                                      "_signal_chunk.wav")
-        utils.write_wave_to_file(filename_chunk, fs, signal_wave)
-        file2labelswriter.writerow([utils.get_basename_without_ext(filename_chunk)] + labels)
-
-    if len(noise_wave) > 0:
-        filename_chunk = os.path.join(output_directory, basename +
-                                      "_noise_chunk.wav")
-        utils.write_wave_to_file(filename_chunk, fs, noise_wave)
 
 def extract_noise_part(spectrogram):
     """ Extract the noise part of a spectrogram
@@ -180,10 +197,6 @@ def reshape_binary_mask(mask, size):
         if rest >= 1:
             rest -= 1.
 
-    #print("scale_fact", scale_fact)
-    #print("i_end:", i_end)
-    #print("size:", size)
-
     if not (i_end - scale_fact) == size:
         raise ValueError("there seems to be a scaling error in reshape_binary_mask")
 
@@ -231,3 +244,21 @@ def normalize(X):
 
     X = (X-mi)/(ma-mi)
     return X
+
+# def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
+    # basename = utils.get_basename_without_ext(filename)
+    # fs, x = utils.read_gzip_wave_file(filename)
+    # signal_wave, noise_wave = preprocess_wave(x, fs)
+
+    # if len(signal_wave) > 0:
+        # filename_chunk = os.path.join(output_directory, basename +
+                                      # "_signal_chunk.wav")
+        # utils.write_wave_to_file(filename_chunk, fs, signal_wave)
+        # file2labelswriter.writerow([utils.get_basename_without_ext(filename_chunk)] + labels)
+
+    # if len(noise_wave) > 0:
+        # filename_chunk = os.path.join(output_directory, basename +
+                                      # "_noise_chunk.wav")
+        # utils.write_wave_to_file(filename_chunk, fs, noise_wave)
+
+
