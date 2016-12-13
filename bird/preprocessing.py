@@ -5,6 +5,7 @@ import glob
 import os
 import csv
 import tqdm
+import scipy.signal as sps
 
 from bird import utils
 from bird import loader
@@ -27,35 +28,59 @@ from bird import signal_processing as sp
             # preprocess_sound_file(f, output_directory, labels,
                                   # file2labelswriter)
 
-def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
-    samplerate, x = utils.read_wave_file(filename)
-    signal_wave, noise_wave = preprocess_wave(x, samplerate)
+def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds,
+                         downsamplerate):
+    """ Preprocess sound file. Loads sound file from filename, downsampels sound
+    file to downsamplerate, extracts signal/noise parts from sound file, splits
+    the signal/noise parts into equally length segments of size segment size
+    seconds.
+
+    # Arguments
+        filename : the sound file to preprocess
+        class_dir : the directory to save the extracted signal segments in
+        noise_dir : the directory to save the extracted noise segments in
+        segment_size_seconds : the size of each segment in seconds
+        downsamplerate : the framerate to which the signal is downsampled
+    # Returns
+        nothing, simply saves the preprocessed sound segments
+    """
+
+    samplerate, wave = utils.read_wave_file(filename)
+    wave = sps.resample(wave, int(downsamplerate * wave.shape[0]/samplerate))
+    signal_wave, noise_wave = preprocess_wave(wave, downsamplerate)
     basename = utils.get_basename_without_ext(filename)
 
-    signal_segments = split_into_segments(x, samplerate, segment_size_seconds)
-    noise_segments = split_into_segments(x, samplerate, segment_size_seconds)
-    save_segments_to_file(class_dir, signal_segments, basename, samplerate)
-    save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
+    signal_segments = split_into_segments(signal_wave, downsamplerate, segment_size_seconds)
+    noise_segments = split_into_segments(noise_wave, downsamplerate, segment_size_seconds)
+    save_segments_to_file(class_dir, signal_segments, basename, downsamplerate)
+    save_segments_to_file(noise_dir, noise_segments, basename, downsamplerate)
 
-def save_segments_to_file(output_dir, segments, basename, samplerate):
+def save_segments_to_file(output_dir, segments, basename, downsamplerate):
     i_segment = 0
     for segment in segments:
-        segment_filepath = os.path.join(output_dir, basename +
-                                        str(i_segment) + ".wav")
-        utils.write_wave_to_file(segment_filepath, samplerate, segment)
+        segment_filepath = os.path.join(output_dir, basename + "_seg_" + str(i_segment) + ".wav")
+        utils.write_wave_to_file(segment_filepath, downsamplerate, segment)
         i_segment += 1
 
 def split_into_segments(wave, samplerate, segment_time):
-    """ Split a wave into segments of segment_size. Zero pad the last
-    segment.
+    """ Split a wave into segments of segment_size. Repeat signal to get equal
+    length segments.
     """
     segment_size = samplerate * segment_time
     wave_size = wave.shape[0]
 
     nb_repeat = segment_size - (wave_size % segment_size)
-    repeated_wave = np.tile(wave, 2)[:wave_size+nb_repeat]
+    nb_tiles = 2
+    if wave_size < segment_size:
+        nb_tiles = int(np.ceil(segment_size/wave_size))
+    repeated_wave = np.tile(wave, nb_tiles)[:wave_size+nb_repeat]
     nb_segments = repeated_wave.shape[0]/segment_size
-    segments = np.split(repeated_wave, nb_segments, axis=0)
+
+    if not repeated_wave.shape[0] % segment_size == 0:
+        raise ValueError("reapeated wave not even multiple of segment size")
+
+    segments = np.split(repeated_wave, int(nb_segments), axis=0)
+
     return segments
 
 
