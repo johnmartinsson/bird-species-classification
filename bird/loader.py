@@ -12,7 +12,7 @@ from bird import utils
 from bird import data_augmentation as da
 from bird import signal_processing as sp
 
-def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
+def mini_batch_generator(nb_augmentation_samples, nb_mini_batches, batch_size,
                          data_filepath, file2labels_filepath, nb_classes,
                          samplerate):
     """ Create a mini-batch generator
@@ -21,10 +21,11 @@ def mini_batch_generator(nb_augmentation_samples, nb_mini_baches, batch_size,
     augmentation_set = create_augmentation_set(data_filepath,
                                                file2labels_filepath,
                                                nb_augmentation_samples)
-    while i_batch_counter < nb_mini_baches:
+    while i_batch_counter < nb_mini_batches:
         mini_batch = np.random.choice(augmentation_set, batch_size)
 
-        X_train, Y_train = mini_batch_to_training_data(mini_batch)
+        X_train, Y_train = mini_batch_to_training_data(mini_batch, samplerate,
+                                                       nb_classes)
 
         yield  X_train, Y_train
         i_batch_counter += 1
@@ -33,8 +34,9 @@ def augmented_batch_generator(data_filepath, file2labels_filepath, samplerate, n
 
     i_batch_counter = 0
     while i_batch_counter < nb_mini_batches:
-        augmentation_set = create_augmentation_set_new(data_filepath,
-                                                       file2labels_filepath)
+        augmentation_set = create_augmentation_set(data_filepath,
+                                                   file2labels_filepath,
+                                                   nb_classes)
         mini_batch = augmentation_set
         X_train, Y_train = mini_batch_to_training_data(mini_batch, samplerate, nb_classes)
 
@@ -42,18 +44,19 @@ def augmented_batch_generator(data_filepath, file2labels_filepath, samplerate, n
         i_batch_counter += 1
 
 def mini_batch_to_training_data(mini_batch, samplerate, nb_classes):
-        signals_and_labels = [da.apply_augmentation(d, time_shift=False) for d in mini_batch]
-        # prepare training samples
-        prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]
-        X_train = np.concatenate([ss for (ss, ls) in prepare_tmp])
-        Y_train = np.concatenate([ls for (ss, ls) in prepare_tmp])
-        # force the garbage collector to clear unreferenced memory
-        gc.collect()
-        Y_train = np.array(Y_train)
-        X_train = np.array(X_train)
-        X_train = X_train.reshape(X_train.shape[0], X_train.shape[1],
-                                            X_train.shape[2], 1)
-        return  X_train, Y_train
+    print("load mini-batch...")
+    signals_and_labels = [da.apply_augmentation(d, time_shift=False) for d in mini_batch]
+    # prepare training samples
+    prepare_tmp = [prepare_training_sample(s, l, samplerate, nb_classes) for (s, l) in signals_and_labels]
+    X_train = np.concatenate([ss for (ss, ls) in prepare_tmp])
+    Y_train = np.concatenate([ls for (ss, ls) in prepare_tmp])
+    # force the garbage collector to clear unreferenced memory
+    gc.collect()
+    Y_train = np.array(Y_train)
+    X_train = np.array(X_train)
+    X_train = X_train.reshape(X_train.shape[0], X_train.shape[1],
+                                        X_train.shape[2], 1)
+    return  X_train, Y_train
 
 
 def prepare_validation_sample(signal, labels, samplerate, nb_classes):
