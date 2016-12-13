@@ -66,8 +66,8 @@ def read_wave_file(filename):
 
     if (s.getnchannels() != 1):
         raise ValueError("Wave file should be mono")
-    if (s.getframerate() != 22050):
-        raise ValueError("Sampling rate of wave file should be 16000")
+    # if (s.getframerate() != 22050):
+        # raise ValueError("Sampling rate of wave file should be 16000")
 
     strsig = s.readframes(s.getnframes())
     x = np.fromstring(strsig, np.short)
