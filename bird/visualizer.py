@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib import gridspec
 
 import pickle
 import glob
@@ -63,32 +64,34 @@ def sprengel_binary_mask_from_wave_file(filepath):
 def signal_and_noise_spectrogram_from_wave_file(filepath):
 
     (fs, wave) = utils.read_wave_file(filepath)
-    spectrogram = sp.wave_to_amplitude_spectrogram(wave, fs)
+    spectrogram = sp.wave_to_sample_spectrogram(wave, fs)
     signal_wave, noise_wave = pp.preprocess_wave(wave, fs)
-    spectrogram_signal = sp.wave_to_log_amplitude_spectrogram(wave, fs)
-    spectrogram_noise = sp.wave_to_log_amplitude_spectrogram(wave, fs)
+    spectrogram_signal = sp.wave_to_sample_spectrogram(signal_wave, fs)
+    spectrogram_noise = sp.wave_to_sample_spectrogram(noise_wave, fs)
 
     fig = plt.figure(1)
     cmap = plt.cm.get_cmap('jet')
+    gs = gridspec.GridSpec(2, 2)
     # whole spectrogram
-    plt.subplot(121)
-    plt.pcolormesh(spectrogram, cmap=cmap)
-    plt.title("Whole Sound")
+    ax1 = fig.add_subplot(gs[0,:])
+    ax1.pcolormesh(spectrogram, cmap=cmap)
+    ax1.set_title("Sound")
 
-    plt.subplot(122)
-    plt.pcolormesh(spectrogram_signal, cmap=cmap)
-    plt.title("Signal Part")
+    ax2 = fig.add_subplot(gs[1,0])
+    ax2.pcolormesh(spectrogram_signal, cmap=cmap)
+    ax2.set_title("Signal")
 
-    plt.subplot(123)
-    plt.pcolormesh(spectrogram_noise, cmap=cmap)
-    plt.title("Noise Part")
+    ax3 = fig.add_subplot(gs[1,1])
+    ax3.pcolormesh(spectrogram_noise, cmap=cmap)
+    ax3.set_title("Noise")
+
+    gs.update(wspace=0.5, hspace=0.5)
 
     basename = utils.get_basename_without_ext(filepath)
     fig.savefig(basename+"_noise_signal.png")
 
-    # close
-    plt.clf()
-    plt.close()
+    fig.clf()
+    plt.close(fig)
 
 def save_matrix_to_file(Sxx, title, filename):
     cmap = plt.cm.get_cmap('jet')
