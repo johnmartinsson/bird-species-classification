@@ -25,13 +25,13 @@ def wave_to_complex_spectrogram(wave, fs, framesamp, hopsamp):
 
 def wave_to_amplitude_spectrogram(wave, fs, framesamp, hopsamp):
     X = wave_to_complex_spectrogram(wave, fs, framesamp, hopsamp)
-    return np.abs(X) ** 2
+    X = np.abs(X) ** 2
+    return X[4:232]
 
 def wave_to_log_amplitude_spectrogram(wave, fs, framesamp, hopsamp):
     return np.log(wave_to_amplitude_spectrogram(wave, fs, framesamp, hopsamp))
 
 def wave_to_sample_spectrogram(wave, fs):
-    # Han window of size 512, and hop size 128 (75% overlap), remove 4 lower
-    # bins, and 24 higher bins
-    return wave_to_log_amplitude_spectrogram(wave, fs, 512, 128)[4:232]
+    # Han window of size 512, and hop size 128 (75% overlap)
+    return wave_to_log_amplitude_spectrogram(wave, fs, 512, 128)
 
