@@ -36,6 +36,30 @@ def pitch_shift_spectrogram(spectrogram):
 
     return np.roll(spectrogram, nb_shifts, axis=0)
 
+def same_class_augmentation(wave, class_dir):
+    """ Perform same class augmentation of the wave by loading a random segment
+    from the class_dir and additively combine the wave with that segment.
+    """
+    sig_paths = glob.glob(os.path.join(class_dir, "*.wav"))
+    aug_sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
+    (fs, aug_sig) = utils.read_wave_file(aug_sig_path)
+    alpha = np.random.rand()
+    wave = (1.0-alpha)*wave + alpha*aug_sig
+    return wave
+
+def noise_augmentation(wave, noise_dir):
+    """ Perform noise augmentation of the wave by loading three noise segments
+    from the noise_dir and add these on top of the wave with a dampening factor
+    of 0.4
+    """
+    noise_paths = glob.glob(os.path.join(noise_dir, "*.wav"))
+    aug_noise_paths = np.random.choice(noise_paths, 3, replace=False)
+    dampening_factor = 0.4
+    for aug_noise_path in aug_noise_paths:
+        (fs, aug_noise) = utils.read_wave_file(aug_noise_path)
+        wave = wave + aug_noise*dampening_factor
+    return wave
+
 def find_same_labels_filepaths(file2labels, labels):
     """ Finds the audio segments which has the same labels as the labels
     supplied

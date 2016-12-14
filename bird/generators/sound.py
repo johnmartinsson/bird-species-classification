@@ -149,19 +149,10 @@ def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
 
     if class_dir:
-        sig_paths = glob.glob(os.path.join(class_dir, "*.wav"))
-        aug_sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
-        (fs, aug_sig) = utils.read_wave_file(aug_sig_path)
-        alpha = np.random.rand()
-        signal = (1.0-alpha)*signal + alpha*aug_sig
+        signal = da.same_class_augmentation(signal, class_dir)
 
     if noise_dir:
-        noise_paths = glob.glob(os.path.join(noise_dir, "*.wav"))
-        aug_noise_paths = np.random.choice(noise_paths, 3, replace=False)
-        dampening_factor = 0.4
-        for aug_noise_path in aug_noise_paths:
-            (fs, aug_noise) = utils.read_wave_file(aug_noise_path)
-            signal = signal + aug_noise*dampening_factor
+        signal = da.noise_augmentation(signal, noise_dir)
 
     spectrogram = sp.wave_to_sample_spectrogram(signal, fs)
 
