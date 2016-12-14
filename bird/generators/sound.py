@@ -613,7 +613,7 @@ class DirectoryIterator(Iterator):
             # print("DType:", x.dtype)
             # from bird import visualizer as vis
             # vis.plot_matrix(x.reshape((x.shape[0], x.shape[1])), "sample")
-            # x = self.image_data_generator.random_transform(x)
+            x = self.image_data_generator.random_transform(x)
             # x = self.image_data_generator.standardize(x)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes

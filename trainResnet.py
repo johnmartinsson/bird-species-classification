@@ -24,7 +24,7 @@ history_file_path = os.path.join("./history", basename + ".pkl")
 
 batch_size = 8
 nb_classes = 20
-samples_per_epoch = 2008
+samples_per_epoch = 12
 nb_epoch = 1
 
 # input image dimensions
@@ -54,6 +54,8 @@ model.compile(loss='categorical_crossentropy',
 
 train_datagen = SoundDataGenerator(
     rescale=1./255,
+    width_shift_range=0.5,
+    height_shift_range=0.05,
     augment_with_same_class=True,
     augment_with_noise=True)
 
