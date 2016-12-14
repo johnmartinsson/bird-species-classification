@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import numpy as np
+import glob
 import re
 from scipy import linalg
 import scipy.ndimage as ndi
@@ -147,15 +148,14 @@ def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
 
     if class_dir:
-        print("same class aug undefined")
-        sig_paths = glob.glob(class_dir + "*.wav")
+        sig_paths = glob.glob(os.path.join(class_dir, "*.wav"))
         aug_sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
         (fs, aug_sig) = utils.read_wave_file(aug_sig_path)
         alpha = np.random.rand()
         signal = (1.0-alpha)*signal + alpha*aug_sig
 
     if noise_dir:
-        noise_paths = glob.glob(noise_dir + "*.wav")
+        noise_paths = glob.glob(os.path.join(noise_dir, "*.wav"))
         aug_noise_paths = np.random.choice(noise_paths, 3, replace=False)
         dampening_factor = 0.4
         for aug_noise_path in aug_noise_paths:
@@ -166,6 +166,7 @@ def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
 
     if target_size:
         spectrogram = scipy.misc.imresize(spectrogram, target_size)
+
     spectrogram = spectrogram.reshape((spectrogram.shape[0],
                                        spectrogram.shape[1], 1))
     return spectrogram
@@ -225,7 +226,9 @@ class SoundDataGenerator(object):
                  horizontal_flip=False,
                  vertical_flip=False,
                  rescale=None,
-                 dim_ordering='default'):
+                 dim_ordering='default',
+                 augment_with_same_class=False,
+                 augment_with_noise=False):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.__dict__.update(locals())
@@ -537,7 +540,7 @@ class DirectoryIterator(Iterator):
         self.save_prefix = save_prefix
         self.save_format = save_format
 
-        white_list_formats = {'wav.gz'}
+        white_list_formats = {'wav'}
 
         # first, count the number of samples and classes
         self.nb_sample = 0
@@ -587,16 +590,23 @@ class DirectoryIterator(Iterator):
         batch_x = np.zeros((current_batch_size,) + self.image_shape)
         grayscale = self.color_mode == 'grayscale'
         # build batch of image data
-        print("batch shape:", batch_x.shape)
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
             # img = load_img(os.path.join(self.directory, fname), grayscale=grayscale, target_size=self.target_size)
             # x = img_to_array(img, dim_ordering=self.dim_ordering)
-            noise_dir = os.path.join(self.directory, "noise")
-            class_dir = os.path.join(self.directory, os.split(fname)[0])
+
+            noise_dir = None
+            class_dir = None
+            #if self.augment_with_noise:
+            noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
+            #if self.augment_with_same_class:
+            class_dir = os.path.join(self.directory, os.path.split(fname)[0])
+            #print("noise_dir", noise_dir)
+            #print("class_dir", class_dir)
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
                                    noise_dir=noise_dir, class_dir=class_dir)
+
             # print("Load wave from folder: ", self.directory)
             # print("Filename: ", fname)
             # print("Shape:", x.shape)
