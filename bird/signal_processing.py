@@ -1,5 +1,4 @@
 import scipy
-import pylab
 import numpy as np
 
 def stft(x, fs, framesz, hop):
