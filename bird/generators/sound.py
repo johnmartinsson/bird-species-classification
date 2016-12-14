@@ -16,6 +16,7 @@ import threading
 
 from keras import backend as K
 
+from bird import data_augmentation as da
 
 def random_rotation(x, rg, row_index=1, col_index=2, channel_index=0,
                     fill_mode='nearest', cval=0.):
@@ -228,7 +229,9 @@ class SoundDataGenerator(object):
                  rescale=None,
                  dim_ordering='default',
                  augment_with_same_class=False,
-                 augment_with_noise=False):
+                 augment_with_noise=False,
+                 time_shift=False,
+                 pitch_shift=False):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.__dict__.update(locals())
@@ -601,19 +604,17 @@ class DirectoryIterator(Iterator):
                 noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
             if self.image_data_generator.augment_with_same_class:
                 class_dir = os.path.join(self.directory, os.path.split(fname)[0])
-            #print("noise_dir", noise_dir)
-            #print("class_dir", class_dir)
+
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
                                    noise_dir=noise_dir, class_dir=class_dir)
 
-            # print("Load wave from folder: ", self.directory)
-            # print("Filename: ", fname)
-            # print("Shape:", x.shape)
-            # print("DType:", x.dtype)
-            # from bird import visualizer as vis
-            # vis.plot_matrix(x.reshape((x.shape[0], x.shape[1])), "sample")
-            x = self.image_data_generator.random_transform(x)
+            if self.image_data_generator.time_shift:
+                x = da.time_shift_spectrogram(x)
+            if self.image_data_generator.pitch_shift:
+                x = da.pitch_shift_spectrogram(x)
+
+            # x = self.image_data_generator.random_transform(x)
             # x = self.image_data_generator.standardize(x)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes
