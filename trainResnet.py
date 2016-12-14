@@ -18,13 +18,13 @@ from bird.generators.sound import SoundDataGenerator
 
 train_path = "./datasets/birdClef2016Subset/train";
 valid_path = "./datasets/birdClef2016Subset/valid";
-basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun"
+basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "resnet"
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
 
 batch_size = 8
 nb_classes = 20
-samples_per_epoch = 12
+samples_per_epoch = 1004
 nb_epoch = 1
 
 # input image dimensions
@@ -70,6 +70,7 @@ train_generator = train_datagen.flow_from_directory(
     batch_size=batch_size,
     class_mode='categorical',
     color_mode='grayscale',
+    save_to_dir='./visuals/augmented_samples',
     seed=SEED)
 
 # Generator for validation data
