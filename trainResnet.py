@@ -102,3 +102,4 @@ with open(history_file_path, 'wb') as output:
     pickle.dump(validLossHistory.data, output, pickle.HIGHEST_PROTOCOL)
     pickle.dump(trainAccHistory.data, output, pickle.HIGHEST_PROTOCOL)
     pickle.dump(validAccHistory.data, output, pickle.HIGHEST_PROTOCOL)
+print ("The history has been saved in: " + history_file_path)
