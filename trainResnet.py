@@ -6,14 +6,15 @@ SEED = 1337
 from keras.datasets import mnist
 from keras.utils import np_utils
 from keras import backend as K
+from keras.optimizers import SGD
 
 from bird.models.resnet import ResNetBuilder
 from bird.generators.sound import SoundDataGenerator
 
 batch_size = 8
 nb_classes = 20
-samples_per_epoch = 100
-nb_epoch = 5
+samples_per_epoch = 2008
+nb_epoch = 20
 
 # input image dimensions
 img_rows, img_cols = 256, 512
@@ -21,8 +22,9 @@ img_rows, img_cols = 256, 512
 nb_channels = 1
 
 model = ResNetBuilder.build_resnet_18((img_rows, img_cols, nb_channels), nb_classes)
+sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
-              optimizer='adadelta',
+              optimizer=sgd,
               metrics=['accuracy'])
 
 train_datagen = SoundDataGenerator(
@@ -40,7 +42,6 @@ train_generator = train_datagen.flow_from_directory(
     target_size=(img_rows, img_cols),
     batch_size=batch_size,
     class_mode='categorical',
-    save_to_dir='./visuals/resnet_training_samples',
     color_mode='grayscale',
     seed=SEED)
 
@@ -58,9 +59,9 @@ valid_generator = valid_datagen.flow_from_directory(
 model.fit_generator(
     train_generator,
     samples_per_epoch=samples_per_epoch,
-    nb_epoch=nb_epoch)
-    #validation_data=valid_generator,
-    #nb_val_samples=613)
+    nb_epoch=nb_epoch,
+    validation_data=valid_generator,
+    nb_val_samples=613)
 
 # Save weights
 model.save_weights('resnet.h5')
