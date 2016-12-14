@@ -28,38 +28,34 @@ from bird import signal_processing as sp
             # preprocess_sound_file(f, output_directory, labels,
                                   # file2labelswriter)
 
-def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds,
-                         downsamplerate):
-    """ Preprocess sound file. Loads sound file from filename, downsampels sound
-    file to downsamplerate, extracts signal/noise parts from sound file, splits
-    the signal/noise parts into equally length segments of size segment size
-    seconds.
+def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
+    """ Preprocess sound file. Loads sound file from filename, downsampels,
+    extracts signal/noise parts from sound file, splits the signal/noise parts
+    into equally length segments of size segment size seconds.
 
     # Arguments
         filename : the sound file to preprocess
         class_dir : the directory to save the extracted signal segments in
         noise_dir : the directory to save the extracted noise segments in
         segment_size_seconds : the size of each segment in seconds
-        downsamplerate : the framerate to which the signal is downsampled
     # Returns
         nothing, simply saves the preprocessed sound segments
     """
 
     samplerate, wave = utils.read_wave_file(filename)
-    wave = sps.resample(wave, int(downsamplerate * wave.shape[0]/samplerate))
-    signal_wave, noise_wave = preprocess_wave(wave, downsamplerate)
+    signal_wave, noise_wave = preprocess_wave(wave, samplerate)
     basename = utils.get_basename_without_ext(filename)
 
-    signal_segments = split_into_segments(signal_wave, downsamplerate, segment_size_seconds)
-    noise_segments = split_into_segments(noise_wave, downsamplerate, segment_size_seconds)
-    save_segments_to_file(class_dir, signal_segments, basename, downsamplerate)
-    save_segments_to_file(noise_dir, noise_segments, basename, downsamplerate)
+    signal_segments = split_into_segments(signal_wave, samplerate, segment_size_seconds)
+    noise_segments = split_into_segments(noise_wave, samplerate, segment_size_seconds)
+    save_segments_to_file(class_dir, signal_segments, basename, samplerate)
+    save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
 
-def save_segments_to_file(output_dir, segments, basename, downsamplerate):
+def save_segments_to_file(output_dir, segments, basename, samplerate):
     i_segment = 0
     for segment in segments:
         segment_filepath = os.path.join(output_dir, basename + "_seg_" + str(i_segment) + ".wav")
-        utils.write_wave_to_file(segment_filepath, downsamplerate, segment)
+        utils.write_wave_to_file(segment_filepath, samplerate, segment)
         i_segment += 1
 
 def split_into_segments(wave, samplerate, segment_time):
