@@ -54,8 +54,8 @@ model.compile(loss='categorical_crossentropy',
 
 train_datagen = SoundDataGenerator(
     rescale=1./255,
-    width_shift_range=0.5,
-    height_shift_range=0.05,
+    time_shift=True,
+    pitch_shift=True,
     augment_with_same_class=True,
     augment_with_noise=True)
 
