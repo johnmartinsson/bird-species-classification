@@ -597,10 +597,10 @@ class DirectoryIterator(Iterator):
 
             noise_dir = None
             class_dir = None
-            #if self.augment_with_noise:
-            noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
-            #if self.augment_with_same_class:
-            class_dir = os.path.join(self.directory, os.path.split(fname)[0])
+            if self.image_data_generator.augment_with_noise:
+                noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
+            if self.image_data_generator.augment_with_same_class:
+                class_dir = os.path.join(self.directory, os.path.split(fname)[0])
             #print("noise_dir", noise_dir)
             #print("class_dir", class_dir)
             x = load_wav_as_narray(os.path.join(self.directory, fname),
