@@ -31,12 +31,11 @@ def CubeRun(nb_classes, input_shape):
     else:
         bn_axis = 3
 
-    #x = ZeroPadding2D((2, 2))(img_input)
     x = Dropout(0.2)(img_input)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
 
-    # conv (64 5x5 kernels, stride size 2x1)
-    x = Convolution2D(64, 5, 5, subsample=(2, 1))(x)
+    # conv (64 5x5 kernels, stride size 1x2)
+    x = Convolution2D(64, 5, 5, subsample=(1, 2))(x)
     x = Activation('relu')(x)
     # max pooling (2x2 kernels, stride size 2x2)
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
@@ -60,7 +59,7 @@ def CubeRun(nb_classes, input_shape):
     # batch normalization
     x = BatchNormalization(axis=bn_axis)(x)
     # conv (256 5x5 kernels, stride size 1x1)
-    x = Convolution2D(256, 5, 5, activation="relu", subsample=(1, 1))(x)
+    x = Convolution2D(256, 5, 5, subsample=(1, 1))(x)
     x = Activation('relu')(x)
     # max pooling (2x2 kernels, stride size 2x2)
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
@@ -73,6 +72,7 @@ def CubeRun(nb_classes, input_shape):
     # max pooling (2x2 kernels, stride size 2x2)
     x = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(x)
 
+    x = BatchNormalization(axis=bn_axis)(x)
     # flatten 3D feature maps to 1D feature vectors
     x = Flatten()(x)
 
