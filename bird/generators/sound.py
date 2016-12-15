@@ -586,8 +586,6 @@ class DirectoryIterator(Iterator):
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
-            # img = load_img(os.path.join(self.directory, fname), grayscale=grayscale, target_size=self.target_size)
-            # x = img_to_array(img, dim_ordering=self.dim_ordering)
 
             noise_dir = None
             class_dir = None
