@@ -74,6 +74,8 @@ def read_wave_file(filename):
     fs = s.getframerate()
     s.close()
 
+    x = x/32768.0
+
     return fs, x
 
 #def wave_to_spectrogram(wave=np.array([]), fs=None, nperseg=512, noverlap=384):
