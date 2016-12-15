@@ -5,14 +5,17 @@ from bird import utils
 from bird import loader
 from sklearn import metrics
 
+import tqdm
+
 nb_classes = 20
-input_shape = (253, 512)
-image_shape = input_shape
+input_shape = (256, 512)
 batch_size=32
 
-def evaluate(model, data_filepath, file2labels_filepath):
-    (X_tests, Y_tests) = loader.load_test_data(data_filepath, file2labels_filepath,
-                                               nb_classes=nb_classes)
+def evaluate(model, data_filepath):
+    # (X_tests, Y_tests) = loader.load_test_data(data_filepath, file2labels_filepath,
+                                               # nb_classes=nb_classes)
+    (X_tests, Y_tests) = loader.load_test_data_birdclef(data_filepath,
+                                                      input_shape)
 
     top_1 = 0
     top_2 = 0
@@ -21,15 +24,18 @@ def evaluate(model, data_filepath, file2labels_filepath):
     top_5 = 0
     average_precision_scores = []
     roc_auc_scores = []
-    print("| Predicted | Ground Truth |")
-    print("|-----------|--------------|")
-    for X_test, Y_test in zip(X_tests, Y_tests):
-        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2], 1)
+    # print("| Predicted | Ground Truth |")
+    # print("|-----------|--------------|")
+    progress = tqdm.tqdm(range(len(X_tests)))
+    for X_test, Y_test, p in zip(X_tests, Y_tests, progress):
+        # print("X_test shape:", X_test.shape)
+        # print("Y_test shape:", Y_test.shape)
         Y_preds = model.predict(X_test)
         y_score = np.mean(Y_preds, axis=0)
         y_pred = np.argmax(y_score)
         y_preds = np.argsort(y_score)[::-1]
-        y_true = Y_test[0]
+        # print("y score", y_score)
+        y_true = Y_test
         y_true_cat = np.argmax(y_true)
 
         # compute average precision score
@@ -50,7 +56,7 @@ def evaluate(model, data_filepath, file2labels_filepath):
         if y_true_cat in y_preds[:5]:
             top_5+=1
 
-        print("| ", y_preds[:5], " | ", y_true_cat, " |")
+        # print("| ", y_preds[:5], " | ", y_true_cat, " |")
 
     print("")
     print("- Top 1:", top_1)
@@ -63,28 +69,8 @@ def evaluate(model, data_filepath, file2labels_filepath):
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
-def to_str(x):
-    if len(x) == 0:
-        return ""
-    else:
-        ret = ""
-        for s in x:
-            ret = ret + ("," + str(s))
-        return ret
-
-def binary_to_id(Y):
-    i = 0
-    r = []
-    for y in Y:
-        if y == 1:
-            r.append(i)
-        i = i+1
-
-    return r
-
 model = CubeRun(nb_classes, input_shape)
-model.load_weights("./weights/2016_12_05_21:10:41_cuberun.h5")
+model.load_weights("./weights/2016_12_14_23:17:33_cuberun.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
-evaluate(model, "./datasets/birdClef2016Subset_preprocessed/valid",
-         "datasets/birdClef2016Subset_preprocessed/valid/file2labels.csv")
+evaluate(model, "./datasets/birdClef2016Subset/valid")
 
