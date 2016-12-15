@@ -13,12 +13,12 @@ from keras.utils import np_utils
 from keras import backend as K
 from keras.optimizers import SGD
 
-from bird.models.resnet import ResNetBuilder
+from bird.models.cuberun import CubeRun
 from bird.generators.sound import SoundDataGenerator
 
 train_path = "./datasets/birdClef2016Subset/train";
 valid_path = "./datasets/birdClef2016Subset/valid";
-basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "resnet"
+basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun"
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
 
@@ -46,7 +46,7 @@ validLossHistory = HistoryCollector('val_loss')
 trainAccHistory = HistoryCollector('acc')
 validAccHistory = HistoryCollector('val_acc')
 
-model = ResNetBuilder.build_resnet_18((img_rows, img_cols, nb_channels), nb_classes)
+model = CubeRun(nb_classes, (img_rows, img_cols, nb_channels))
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
