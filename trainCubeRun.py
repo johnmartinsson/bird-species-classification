@@ -22,10 +22,10 @@ basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "cuberun"
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
 
-batch_size = 8
+batch_size = 16
 nb_classes = 20
 samples_per_epoch = 2008
-nb_epoch = 60
+nb_epoch = 100
 
 # input image dimensions
 img_rows, img_cols = 256, 512
@@ -47,7 +47,7 @@ trainAccHistory = HistoryCollector('acc')
 validAccHistory = HistoryCollector('val_acc')
 
 model = CubeRun(nb_classes, (img_rows, img_cols, nb_channels))
-sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
+sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
               metrics=['accuracy'])
