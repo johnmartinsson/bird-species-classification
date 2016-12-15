@@ -17,11 +17,11 @@ def CubeRun(nb_classes, input_shape):
     """
 
     # adapt input shape to the used backend
-    (image_rows, image_cols) = input_shape
-    if K.image_dim_ordering() == 'th':
-        input_shape=(1, image_rows, image_cols)
-    else:
-        input_shape=(image_rows, image_cols, 1)
+    #(image_rows, image_cols) = input_shape
+    #if K.image_dim_ordering() == 'th':
+    #    input_shape=(1, image_rows, image_cols)
+    #else:
+    #    input_shape=(image_rows, image_cols, 1)
 
     img_input = Input(shape=input_shape)
 
