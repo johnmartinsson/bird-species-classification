@@ -21,7 +21,7 @@ def _conv_bn_relu(nb_filter, nb_row, nb_col, subsample=(1, 1)):
     def f(input):
         conv = Convolution2D(nb_filter=nb_filter, nb_row=nb_row, nb_col=nb_col, subsample=subsample,
                              init="he_normal", border_mode="same")(input)
-        norm = BatchNormalization(mode=0, axis=1)(conv)
+        norm = BatchNormalization(mode=0, axis=3)(conv)
         return Activation("relu")(norm)
 
     return f
@@ -31,7 +31,7 @@ def _conv_bn_relu(nb_filter, nb_row, nb_col, subsample=(1, 1)):
 # This is an improved scheme proposed in http://arxiv.org/pdf/1603.05027v2.pdf
 def _bn_relu_conv(nb_filter, nb_row, nb_col, subsample=(1, 1)):
     def f(input):
-        norm = BatchNormalization(mode=0, axis=1)(input)
+        norm = BatchNormalization(mode=0, axis=3)(input)
         activation = Activation("relu")(norm)
         return Convolution2D(nb_filter=nb_filter, nb_row=nb_row, nb_col=nb_col, subsample=subsample,
                              init="he_normal", border_mode="same")(activation)
