@@ -26,10 +26,10 @@ def CubeRun(nb_classes, input_shape):
     img_input = Input(shape=input_shape)
 
     # adapt batch normalization axis to the used backend
-    if K.image_dim_ordering() == 'th':
-        bn_axis = 1
-    else:
-        bn_axis = 3
+    #if K.image_dim_ordering() == 'th':
+    #    bn_axis = 1
+    #else:
+    bn_axis = 3
 
     x = Dropout(0.2)(img_input)
     x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
