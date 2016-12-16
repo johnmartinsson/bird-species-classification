@@ -8,6 +8,7 @@ from __future__ import print_function
 import numpy as np
 import glob
 import re
+import scipy
 from scipy import linalg
 import scipy.ndimage as ndi
 from six.moves import range
@@ -16,7 +17,9 @@ import threading
 
 from keras import backend as K
 
+from bird import utils
 from bird import data_augmentation as da
+from bird import signal_processing as sp
 
 def random_rotation(x, rg, row_index=1, col_index=2, channel_index=0,
                     fill_mode='nearest', cval=0.):
@@ -142,10 +145,6 @@ def array_to_img(x, dim_ordering='default', scale=True):
         raise Exception('Unsupported channel number: ', x.shape[2])
 
 def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
-    from bird import utils
-    from bird import signal_processing as sp
-    import scipy
-
     (fs, signal) = utils.read_wave_file(fname)
 
     if class_dir:
