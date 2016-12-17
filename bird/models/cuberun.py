@@ -31,8 +31,8 @@ def CubeRun(nb_classes, input_shape):
     #else:
     bn_axis = 3
 
-    x = Dropout(0.2)(img_input)
-    x = BatchNormalization(axis=bn_axis, name='bn_conv1')(x)
+    # x = Dropout(0.2)(img_input)
+    x = BatchNormalization(axis=bn_axis, name='bn_conv1')(img_input)
 
     # conv (64 5x5 kernels, stride size 1x2)
     x = Convolution2D(64, 5, 5, subsample=(1, 2), activation='relu',
@@ -82,7 +82,7 @@ def CubeRun(nb_classes, input_shape):
 
     # soft max layer
     x = Dropout(0.4)(x)
-    x = Dense(nb_classes, activation='softmax')(x)
+    x = Dense(nb_classes, activation='softmax', name='softmax')(x)
 
     model = Model(img_input, x)
 
