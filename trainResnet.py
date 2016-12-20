@@ -21,11 +21,13 @@ valid_path = "./datasets/birdClef2016Subset/valid";
 basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "resnet"
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
+print ("The weights are saved in: " + weight_file_path)
 
 batch_size = 8
 nb_classes = 20
-samples_per_epoch = 2008
-nb_epoch = 60
+samples_per_epoch = 2113
+nb_val_samples=613
+nb_epoch = 120
 
 # input image dimensions
 img_rows, img_cols = 256, 512
@@ -46,7 +48,9 @@ validLossHistory = HistoryCollector('val_loss')
 trainAccHistory = HistoryCollector('acc')
 validAccHistory = HistoryCollector('val_acc')
 
-model = ResNetBuilder.build_resnet_18((img_rows, img_cols, nb_channels), nb_classes)
+checkpoint = keras.callbacks.ModelCheckpoint(weight_file_path, monitor='val_acc', verbose=0, save_best_only=True, save_weights_only=True, mode='auto')
+
+model = ResNetBuilder.build_resnet_34((img_rows, img_cols, nb_channels), nb_classes)
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
@@ -90,13 +94,12 @@ model.fit_generator(
     samples_per_epoch=samples_per_epoch,
     nb_epoch=nb_epoch,
     validation_data=valid_generator,
-    nb_val_samples=613,
-    callbacks=[trainLossHistory, validLossHistory, trainAccHistory, validAccHistory])
+    nb_val_samples=nb_val_samples,
+    callbacks=[trainLossHistory, validLossHistory, trainAccHistory, validAccHistory, checkpoint])
 
 # save the weights
-model.save_weights(weight_file_path)
+# model.save_weights(weight_file_path)
 print (strftime("%a, %d %b %Y %H:%M:%S +0000", localtime()))
-print ("The weights have been saved in: " + weight_file_path)
 
 # save history to file
 with open(history_file_path, 'wb') as output:
