@@ -25,7 +25,7 @@ history_file_path = os.path.join("./history", basename + ".pkl")
 batch_size = 8
 nb_classes = 20
 samples_per_epoch = 2008
-nb_epoch = 60
+nb_epoch = 120
 
 # input image dimensions
 img_rows, img_cols = 256, 512
@@ -46,7 +46,7 @@ validLossHistory = HistoryCollector('val_loss')
 trainAccHistory = HistoryCollector('acc')
 validAccHistory = HistoryCollector('val_acc')
 
-model = ResNetBuilder.build_resnet_18((img_rows, img_cols, nb_channels), nb_classes)
+model = ResNetBuilder.build_resnet_34((img_rows, img_cols, nb_channels), nb_classes)
 sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 model.compile(loss='categorical_crossentropy',
               optimizer=sgd,
