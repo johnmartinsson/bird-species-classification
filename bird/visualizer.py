@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib import gridspec
 
+import os
 import pickle
 import glob
 import tqdm
@@ -10,6 +11,7 @@ from skimage import morphology
 from bird import utils
 from bird import preprocessing as pp
 from bird import signal_processing as sp
+from bird import data_augmentation as da
 
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
@@ -92,6 +94,76 @@ def signal_and_noise_spectrogram_from_wave_file(filepath):
 
     fig.clf()
     plt.close(fig)
+
+def same_class_augmentation_from_dir(class_dir):
+    sig_paths = glob.glob(os.path.join(class_dir, "*.wav"))
+    sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
+    (fs, sig) = utils.read_wave_file(sig_path)
+
+    aug_sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
+    (fs, aug_sig) = utils.read_wave_file(aug_sig_path)
+    alpha = np.random.rand()
+    combined_sig = (1.0-alpha)*sig + alpha*aug_sig
+
+    spectrogram_sig = sp.wave_to_sample_spectrogram(sig, fs)
+    spectrogram_aug_sig = sp.wave_to_sample_spectrogram(aug_sig, fs)
+    spectrogram_combined_sig = sp.wave_to_sample_spectrogram(combined_sig, fs)
+
+    fig = plt.figure(1)
+    cmap = plt.cm.get_cmap('jet')
+    gs = gridspec.GridSpec(3, 1)
+    # whole spectrogram
+    ax1 = fig.add_subplot(gs[0,0])
+    ax1.pcolormesh(spectrogram_sig, cmap=cmap)
+    ax1.set_title("Signal 1")
+
+    ax2 = fig.add_subplot(gs[1,0])
+    ax2.pcolormesh(spectrogram_aug_sig, cmap=cmap)
+    ax2.set_title("Signal 2")
+
+    ax3 = fig.add_subplot(gs[2,0])
+    ax3.pcolormesh(spectrogram_combined_sig, cmap=cmap)
+    ax3.set_title("Augmented Signal (alpha=" + str(alpha) + ")")
+
+    gs.update(wspace=0.5, hspace=0.5)
+
+    basename = utils.get_basename_without_ext(sig_path)
+    fig.savefig(basename+"_same_class_augmentation.png")
+
+    fig.clf()
+    plt.close(fig)
+
+
+def noise_augmentation_from_dirs(noise_dir, class_dir):
+    sig_paths = glob.glob(os.path.join(class_dir, "*.wav"))
+    sig_path = np.random.choice(sig_paths, 1, replace=False)[0]
+    (fs, sig) = utils.read_wave_file(sig_path)
+    aug_sig = da.noise_augmentation(sig, noise_dir)
+
+    spectrogram_sig = sp.wave_to_sample_spectrogram(sig, fs)
+    spectrogram_aug_sig = sp.wave_to_sample_spectrogram(aug_sig, fs)
+
+    fig = plt.figure(1)
+    cmap = plt.cm.get_cmap('jet')
+    gs = gridspec.GridSpec(2, 1)
+    # whole spectrogram
+    ax1 = fig.add_subplot(gs[0,0])
+    ax1.pcolormesh(spectrogram_sig, cmap=cmap)
+    ax1.set_title("Original Signal")
+
+    ax2 = fig.add_subplot(gs[1,0])
+    ax2.pcolormesh(spectrogram_aug_sig, cmap=cmap)
+    ax2.set_title("Noise Augmented signal")
+
+    gs.update(wspace=0.5, hspace=0.5)
+
+    basename = utils.get_basename_without_ext(sig_path)
+    fig.savefig(basename+"_noise_augmentation.png")
+
+    fig.clf()
+    plt.close(fig)
+
+
 
 def save_matrix_to_file(Sxx, title, filename):
     cmap = plt.cm.get_cmap('jet')
