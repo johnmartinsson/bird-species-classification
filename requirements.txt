@@ -8,3 +8,5 @@ pillow
 h5py
 scikit-image
 tqdm
+mock
+librosa
