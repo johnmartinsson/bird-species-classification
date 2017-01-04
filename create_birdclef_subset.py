@@ -52,8 +52,7 @@ print("- Chosing random species")
 print("--------------------------------------------------------------------------------")
 
 # Settings
-nb_species = 5
-downsamplerate = 22050
+nb_species = 20
 segment_size_seconds = 3
 
 # Paths
@@ -88,7 +87,13 @@ for (p, r) in zip(progress, xml_random_species):
     filename = r.find("FileName").text
     filepath = os.path.join(source_dir, filename)
 
-    class_dir = os.path.join(subset_root_dir, species)
+    r = np.random.rand()
+    class_dir = None
+    if r < 0.2:
+        class_dir = os.path.join(subset_root_dir, "valid", species)
+    else:
+        class_dir = os.path.join(subset_root_dir, "train", species)
+
     if not os.path.exists(class_dir):
         print("Create diractory: ", class_dir)
         os.makedirs(class_dir)
@@ -96,4 +101,4 @@ for (p, r) in zip(progress, xml_random_species):
     # preprocess the sound file, and save signal to class_dir, noise to
     # noise_dir with specified segment size
     pp.preprocess_sound_file(filepath, class_dir, noise_dir,
-                             segment_size_seconds, downsamplerate)
+                             segment_size_seconds)
