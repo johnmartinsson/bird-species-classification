@@ -1,6 +1,7 @@
 import numpy as np
 from functools import reduce
 from bird.models.cuberun import CubeRun
+from bird.models.resnet import ResNetBuilder
 from bird import utils
 from bird import loader
 from sklearn import metrics
@@ -8,7 +9,7 @@ from sklearn import metrics
 import tqdm
 
 nb_classes = 20
-input_shape = (256, 512)
+input_shape = (256, 512, 1)
 batch_size=32
 
 def evaluate(model, data_filepath):
@@ -69,8 +70,9 @@ def evaluate(model, data_filepath):
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
-model = CubeRun(nb_classes, input_shape)
-model.load_weights("./weights/2016_12_14_23:17:33_cuberun.h5")
+# model = CubeRun(nb_classes, input_shape)
+model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
+model.load_weights("./weights/2016_12_20_16:47:03_resnet.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 evaluate(model, "./datasets/birdClef2016Subset/valid")
 
