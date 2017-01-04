@@ -1,5 +1,11 @@
 import scipy
 import numpy as np
+import mock
+import sys
+sys.modules.update((mod_name, mock.Mock()) for mod_name in ['matplotlib',
+                                                            'matplotlib.pyplot',
+                                                            'matplotlib.image'])
+import librosa
 
 def stft(x, fs, framesz, hop):
     framesamp = int(framesz*fs)
@@ -17,20 +23,18 @@ def istft(X, fs, T, hop):
         x[i:i+framesamp] += scipy.real(scipy.ifft(X[n]))
     return x
 
-def wave_to_complex_spectrogram(wave, fs, framesamp, hopsamp):
-    framesz = framesamp/fs
-    hop = hopsamp/fs
-    return stft(wave, fs, framesz, hop).T
+def wave_to_complex_spectrogram(wave, fs):
+    return librosa.stft(wave, n_fft=512, hop_length=128, win_length=512)
 
-def wave_to_amplitude_spectrogram(wave, fs, framesamp, hopsamp):
-    X = wave_to_complex_spectrogram(wave, fs, framesamp, hopsamp)
+def wave_to_amplitude_spectrogram(wave, fs):
+    X = wave_to_complex_spectrogram(wave, fs) #, framesamp, hopsamp)
     X = np.abs(X) ** 2
     return X[4:232]
 
-def wave_to_log_amplitude_spectrogram(wave, fs, framesamp, hopsamp):
-    return np.log(wave_to_amplitude_spectrogram(wave, fs, framesamp, hopsamp))
+def wave_to_log_amplitude_spectrogram(wave, fs):
+    return np.log(wave_to_amplitude_spectrogram(wave, fs))
 
 def wave_to_sample_spectrogram(wave, fs):
     # Han window of size 512, and hop size 128 (75% overlap)
-    return wave_to_log_amplitude_spectrogram(wave, fs, 512, 128)
+    return wave_to_log_amplitude_spectrogram(wave, fs)
 

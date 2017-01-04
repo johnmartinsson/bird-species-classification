@@ -184,20 +184,31 @@ def plot_history_to_image_file(pickle_path):
         validLoss = pickle.load(input)
         trainAcc = pickle.load(input)
         validAcc = pickle.load(input)
-        plt.figure(1)
+
+        x = range(len(validAcc))
+        y = validAcc
+        z = np.polyfit(x, y, 3)
+        p = np.poly1d(z)
+
+        fig = plt.figure(1)
         plt.subplot(211)
         plt.ylabel("Loss")
         plt.xlabel("Epoch")
-        plt.plot(trainLoss, 'v', label="train")
-        plt.plot(validLoss, 'o', label="valid")
+        plt.plot(trainLoss, 'o-', label="train")
+        plt.plot(validLoss, 'o-', label="valid")
         plt.legend(loc="upper_left")
         plt.subplot(212)
         plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
-        plt.plot(trainAcc, 'v', label="train")
-        plt.plot(validAcc, 'o', label="valid")
+        plt.plot(trainAcc, 'o-', label="train")
+        plt.plot(validAcc, 'o-', label="valid")
+        plt.plot(p(x), 'o-', label="trend")
         plt.legend(loc="upper_left")
-        plt.show()
+
+        basename = utils.get_basename_without_ext(pickle_path)
+        fig.savefig(basename + ".png")
+        plt.clf()
+        plt.close()
 
 def plot_log_spectrogram_from_wave_file(filename):
     fs, x = utils.read_gzip_wave_file(filename)
