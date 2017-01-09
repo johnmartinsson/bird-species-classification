@@ -285,7 +285,7 @@ def load_segments(segments, target_size):
     data = []
     for segment in segments:
         (fs, signal) = utils.read_wave_file(segment)
-        spectrogram = sp.wave_to_amplitude_spectrogram(signal, fs, 512, 128)
+        spectrogram = sp.wave_to_sample_spectrogram(signal, fs)
         spectrogram = scipy.misc.imresize(spectrogram, target_size)
         spectrogram = spectrogram.reshape((spectrogram.shape[0],
                                            spectrogram.shape[1], 1))

@@ -16,18 +16,22 @@ from keras.optimizers import SGD
 from bird.models.resnet import ResNetBuilder
 from bird.generators.sound import SoundDataGenerator
 
-train_path = "./datasets/birdClef2016Subset/train";
-valid_path = "./datasets/birdClef2016Subset/valid";
+train_path = "/disk/martinsson-spring17/birdClef2016Subset/train";
+valid_path = "/disk/martinsson-spring17/birdClef2016Subset/valid";
+
+#train_path = "/disk/martinsson-spring17/birdClef2016Whole/train";
+#valid_path = "/disk/martinsson-spring17/birdClef2016Whole/valid";
+
 basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + "resnet"
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
 print ("The weights are saved in: " + weight_file_path)
 
-batch_size = 8
+batch_size = 16
 nb_classes = 20
 samples_per_epoch = 2113
 nb_val_samples=613
-nb_epoch = 120
+nb_epoch = 10
 
 # input image dimensions
 img_rows, img_cols = 256, 512
