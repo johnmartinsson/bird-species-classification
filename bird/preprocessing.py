@@ -84,7 +84,7 @@ def preprocess_wave(wave, fs):
     """ Preprocess a signal by computing the noise and signal mask of the
     signal, and extracting each part from the signal
     """
-    Sxx = sp.wave_to_amplitude_spectrogram(wave, fs, 512, 128)
+    Sxx = sp.wave_to_amplitude_spectrogram(wave, fs)
 
     n_mask = compute_noise_mask(Sxx)
     s_mask = compute_signal_mask(Sxx)
