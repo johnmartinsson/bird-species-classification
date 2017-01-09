@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from __future__ import print_function
 import numpy as np
 # np.random.seed(1337)  # for reproducibility
@@ -130,8 +132,8 @@ parser.add_option("--lock_file", dest="lock_file")
 batch_size = 16
 nb_classes = 20
 nb_epoch   = 10
-nb_val_samples = 10
-samples_per_epoch = 10
+nb_val_samples = 613
+samples_per_epoch = 2113
 input_shape = (256, 512, 1)
 
 train_path = options.train_path
@@ -140,6 +142,8 @@ history_file_path = options.history_path
 weight_file_path = options.weight_path
 first_epoch = options.first_epoch
 lock_file = options.lock_file
+
+print("Options:", options)
 
 train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
             nb_val_samples, samples_per_epoch, input_shape, weight_file_path,
