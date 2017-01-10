@@ -507,7 +507,11 @@ class DirectoryIterator(Iterator):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.directory = directory
-        self.noise_files = glob.glob(os.path.join(os.path.dirname(directory), "noise/*.wav"))
+        # Cache noise sets
+        noise_files = random.shuffle(glob.glob(os.path.join(os.path.dirname(directory), "noise/*.wav")))
+        noise_sets = np.array_split(np.array(noise_files),
+                                         np.ceil(len(noise_files)/5000))
+        self.noise_sets = [a.tolist() for a in noise_sets]
         print("Loaded ", len(self.noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
@@ -585,6 +589,7 @@ class DirectoryIterator(Iterator):
         # The transformation of images is not under thread lock so it can be done in parallel
         batch_x = np.zeros((current_batch_size,) + self.image_shape)
         grayscale = self.color_mode == 'grayscale'
+        noise_files = random.choice(self.noise_sets)
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
@@ -595,7 +600,7 @@ class DirectoryIterator(Iterator):
 
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
-                                   noise_files=self.noise_files,
+                                   noise_files=noise_files,
                                    augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
 
             if self.image_data_generator.time_shift:
