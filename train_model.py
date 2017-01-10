@@ -74,6 +74,7 @@ def train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
     print("Loading training data...")
     train_generator = train_datagen.flow_from_directory(
         train_path,
+        noise_path,
         target_size=(img_rows, img_cols),
         batch_size=batch_size,
         class_mode='categorical',
@@ -85,6 +86,7 @@ def train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
     print("Loading validation data...")
     valid_generator = valid_datagen.flow_from_directory(
         valid_path,
+        noise_path,
         target_size=(img_rows, img_cols),
         batch_size=batch_size,
         class_mode='categorical',
@@ -122,6 +124,7 @@ def train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
 parser = OptionParser()
 parser.add_option("--train_path", dest="train_path")
 parser.add_option("--valid_path", dest="valid_path")
+parser.add_option("--noise_path", dest="noise_path")
 parser.add_option("--weight_path", dest="weight_path")
 parser.add_option("--history_path", dest="history_path")
 parser.add_option("--first_epoch", dest="first_epoch")
@@ -136,6 +139,7 @@ nb_val_samples = 21421
 samples_per_epoch = 120769
 input_shape = (256, 512, 1)
 
+noise_path = options.noise_path
 train_path = options.train_path
 valid_path = options.valid_path
 history_file_path = options.history_path

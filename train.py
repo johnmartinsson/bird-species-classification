@@ -10,6 +10,7 @@ nb_iterations = 20
 model_name = "cuberun"
 train_path = "/disk/martinsson-spring17/birdClef2016Whole/train"
 valid_path = "/disk/martinsson-spring17/birdClef2016Whole/valid"
+noise_path = "/home/martinsson-spring17/data/noise"
 lock_file  = "job_done.lock"
 
 basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + model_name
@@ -28,6 +29,7 @@ qsub_args = [
     tmp_history_file_path,
     train_path,
     valid_path,
+    noise_path,
     lock_file
 ]
 
