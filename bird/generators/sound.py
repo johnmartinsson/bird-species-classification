@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import numpy as np
+import random
 import glob
 import re
 import scipy
@@ -262,13 +263,13 @@ class SoundDataGenerator(object):
             dim_ordering=self.dim_ordering,
             save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format)
 
-    def flow_from_directory(self, directory,
+    def flow_from_directory(self, directory, noise_dir,
                             target_size=(256, 256), color_mode='rgb',
                             classes=None, class_mode='categorical',
                             batch_size=32, shuffle=True, seed=None,
                             save_to_dir=None, save_prefix='', save_format='jpeg'):
         return DirectoryIterator(
-            directory, self,
+            directory, noise_dir, self,
             target_size=target_size, color_mode=color_mode,
             classes=classes, class_mode=class_mode,
             dim_ordering=self.dim_ordering,
@@ -498,7 +499,7 @@ class NumpyArrayIterator(Iterator):
 
 class DirectoryIterator(Iterator):
 
-    def __init__(self, directory, image_data_generator,
+    def __init__(self, directory, noise_dir, image_data_generator,
                  target_size=(256, 256), color_mode='rgb',
                  dim_ordering='default',
                  classes=None, class_mode='categorical',
@@ -508,11 +509,10 @@ class DirectoryIterator(Iterator):
             dim_ordering = K.image_dim_ordering()
         self.directory = directory
         # Cache noise sets
-        noise_files = random.shuffle(glob.glob(os.path.join(os.path.dirname(directory), "noise/*.wav")))
-        noise_sets = np.array_split(np.array(noise_files),
-                                         np.ceil(len(noise_files)/5000))
-        self.noise_sets = [a.tolist() for a in noise_sets]
-        print("Loaded ", len(self.noise_files), " noise segments")
+        noise_files = glob.glob(os.path.join(noise_dir, "*.wav"))
+        random.shuffle(noise_files)
+        self.noise_files = noise_files
+        print("Loaded ", len(noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
         if color_mode not in {'rgb', 'grayscale'}:
@@ -589,7 +589,6 @@ class DirectoryIterator(Iterator):
         # The transformation of images is not under thread lock so it can be done in parallel
         batch_x = np.zeros((current_batch_size,) + self.image_shape)
         grayscale = self.color_mode == 'grayscale'
-        noise_files = random.choice(self.noise_sets)
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
@@ -600,7 +599,7 @@ class DirectoryIterator(Iterator):
 
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
-                                   noise_files=noise_files,
+                                   noise_files=self.noise_files,
                                    augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
 
             if self.image_data_generator.time_shift:
