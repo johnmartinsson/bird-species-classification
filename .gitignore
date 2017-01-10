@@ -101,3 +101,5 @@ resnet_sound_data/
 visuals/
 visualizations
 resnet_sound_images/
+log
+experiments/
