@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 from __future__ import print_function
 import numpy as np
@@ -130,10 +130,10 @@ parser.add_option("--lock_file", dest="lock_file")
 (options, args) = parser.parse_args()
 
 batch_size = 16
-nb_classes = 20
-nb_epoch   = 10
-nb_val_samples = 613
-samples_per_epoch = 2113
+nb_classes = 809
+nb_epoch   = 6
+nb_val_samples = 21421
+samples_per_epoch = 120769
 input_shape = (256, 512, 1)
 
 train_path = options.train_path
