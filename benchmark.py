@@ -15,8 +15,8 @@ n_mask_scaled = pp.reshape_binary_mask(n_mask, x.shape[0])
 Nxx = pp.normalize(Sxx)
 
 target_size = (256, 512)
-noise_files = glob.glob("datasets/birdClef2016Subset/noise/*.wav")
-noise_files_aux = ["LIFECLEF2015_BIRDAMAZON_XC_WAV_RN21653_seg_2.wav" + str(i) for i in range(150000)]
+noise_files = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise.whole/*.wav")
+noise_files_small = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise/*.wav")
 class_dir = "datasets/birdClef2016Subset/train/affinis"
 
 def compute_spectrogram():
@@ -51,9 +51,21 @@ def median_clipping():
 
 def load_wav_as_narray():
     gs.load_wav_as_narray(filename, target_size, noise_files, class_dir)
+def load_wav_as_narray_small():
+    gs.load_wav_as_narray(filename, target_size, noise_files_small, class_dir)
 
 def same_class_augmentation():
     da.same_class_augmentation(x, class_dir)
+
+def read_random_noise_file():
+    f = random.choice(noise_files)
+    (fs, x) = utils.read_wave_file(f)
+    x = x * 2
+
+def read_random_noise_file_small():
+    f = random.choice(noise_files_small)
+    (fs, x) = utils.read_wave_file(f)
+    x = x * 2
 
 def noise_augmentation():
     da.noise_augmentation(x, noise_files)
@@ -63,14 +75,18 @@ def choose_noise_segments():
     aug_noise_files = []
     for i in range(nb_noise_segments):
         aug_noise_files.append(random.choice(noise_files))
-    return aug_noise_files
+    f1 = aug_noise_files[0] + "h"
+    f2 = aug_noise_files[1] + "j"
+    f3 = aug_noise_files[2] + "k"
 
-def choose_noise_segments_aux():
+def choose_noise_segments_small():
     nb_noise_segments = 3
     aug_noise_files = []
     for i in range(nb_noise_segments):
-        aug_noise_files.append(random.choice(noise_files_aux))
-    return aug_noise_files
+        aug_noise_files.append(random.choice(noise_files_small))
+    f1 = aug_noise_files[0] + "h"
+    f2 = aug_noise_files[1] + "j"
+    f3 = aug_noise_files[2] + "k"
 
 def compute_noise_augmented():
     nb_noise_segments = 3
@@ -87,17 +103,20 @@ def compute_noise_augmented():
 if __name__=='__main__':
     import timeit
     number = 100
-    # print("compute_spectrogram():", timeit.timeit("compute_spectrogram()", setup="from __main__ import compute_spectrogram", number=number))
-    # print("read_wave_file():", timeit.timeit("read_wave_file()", setup="from __main__ import read_wave_file", number=number))
-    # print("median_clipping():", timeit.timeit("median_clipping()", setup="from __main__ import median_clipping", number=number))
-    # print("compute_noise_mask():", timeit.timeit("compute_noise_mask()", setup="from __main__ import compute_noise_mask", number=number))
-    # print("compute_signal_mask():", timeit.timeit("compute_signal_mask()", setup="from __main__ import compute_signal_mask", number=number))
-    # print("reshape_binary_mask():", timeit.timeit("reshape_binary_mask()", setup="from __main__ import reshape_binary_mask", number=number))
-    # print("extract_masked_part_from_wave():", timeit.timeit("extract_masked_part_from_wave()", setup="from __main__ import extract_masked_part_from_wave", number=number))
-    # print("preprocess_wave():", timeit.timeit("preprocess_wave()", setup="from __main__ import preprocess_wave", number=number))
+    print("compute_spectrogram():", timeit.timeit("compute_spectrogram()", setup="from __main__ import compute_spectrogram", number=number))
+    print("read_wave_file():", timeit.timeit("read_wave_file()", setup="from __main__ import read_wave_file", number=number))
+    print("median_clipping():", timeit.timeit("median_clipping()", setup="from __main__ import median_clipping", number=number))
+    print("compute_noise_mask():", timeit.timeit("compute_noise_mask()", setup="from __main__ import compute_noise_mask", number=number))
+    print("compute_signal_mask():", timeit.timeit("compute_signal_mask()", setup="from __main__ import compute_signal_mask", number=number))
+    print("reshape_binary_mask():", timeit.timeit("reshape_binary_mask()", setup="from __main__ import reshape_binary_mask", number=number))
+    print("extract_masked_part_from_wave():", timeit.timeit("extract_masked_part_from_wave()", setup="from __main__ import extract_masked_part_from_wave", number=number))
+    print("preprocess_wave():", timeit.timeit("preprocess_wave()", setup="from __main__ import preprocess_wave", number=number))
     print("load_wav_as_narray():", timeit.timeit("load_wav_as_narray()", setup="from __main__ import load_wav_as_narray", number=number))
+    print("load_wav_as_narray_small():", timeit.timeit("load_wav_as_narray_small()", setup="from __main__ import load_wav_as_narray_small", number=number))
+    print("read_random_noise_file():", timeit.timeit("read_random_noise_file()", setup="from __main__ import read_random_noise_file", number=number))
+    print("read_random_noise_file_small():", timeit.timeit("read_random_noise_file_small()", setup="from __main__ import read_random_noise_file_small", number=number))
     print("same_class_augmentation():", timeit.timeit("same_class_augmentation()", setup="from __main__ import same_class_augmentation", number=number))
     print("noise_augmentation():", timeit.timeit("noise_augmentation()", setup="from __main__ import noise_augmentation", number=number))
     print("choose_noise_segments():", timeit.timeit("choose_noise_segments()", setup="from __main__ import choose_noise_segments", number=number))
-    print("choose_noise_segments_aux():", timeit.timeit("choose_noise_segments_aux()", setup="from __main__ import choose_noise_segments_aux", number=number))
+    print("choose_noise_segments_small():", timeit.timeit("choose_noise_segments_small()", setup="from __main__ import choose_noise_segments_small", number=number))
     print("compute_noise_augmented():", timeit.timeit("compute_noise_augmented()", setup="from __main__ import compute_noise_augmented", number=number))
