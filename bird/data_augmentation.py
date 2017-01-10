@@ -47,15 +47,14 @@ def same_class_augmentation(wave, class_dir):
     wave = (1.0-alpha)*wave + alpha*aug_sig
     return wave
 
-def noise_augmentation(wave, noise_dir):
+def noise_augmentation(wave, noise_files):
     """ Perform noise augmentation of the wave by loading three noise segments
     from the noise_dir and add these on top of the wave with a dampening factor
     of 0.4
     """
-    noise_paths = glob.glob(os.path.join(noise_dir, "*.wav"))
-    aug_noise_paths = np.random.choice(noise_paths, 3, replace=False)
+    aug_noise_files = np.random.choice(noise_files, 3, replace=False)
     dampening_factor = 0.4
-    for aug_noise_path in aug_noise_paths:
+    for aug_noise_path in aug_noise_files:
         (fs, aug_noise) = utils.read_wave_file(aug_noise_path)
         wave = wave + aug_noise*dampening_factor
     return wave

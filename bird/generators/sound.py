@@ -144,14 +144,14 @@ def array_to_img(x, dim_ordering='default', scale=True):
     else:
         raise Exception('Unsupported channel number: ', x.shape[2])
 
-def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
+def load_wav_as_narray(fname, target_size=None, noise_files=None, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
 
     if class_dir:
         signal = da.same_class_augmentation(signal, class_dir)
 
-    if noise_dir:
-        signal = da.noise_augmentation(signal, noise_dir)
+    if noise_files:
+        signal = da.noise_augmentation(signal, noise_files)
 
     spectrogram = sp.wave_to_sample_spectrogram(signal, fs)
 
@@ -506,6 +506,7 @@ class DirectoryIterator(Iterator):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.directory = directory
+        self.noise_files = glob.glob(os.path.join(directory, "noise/*.wav"))
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
         if color_mode not in {'rgb', 'grayscale'}:
@@ -586,16 +587,16 @@ class DirectoryIterator(Iterator):
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
 
-            noise_dir = None
+            noise_files = None
             class_dir = None
             if self.image_data_generator.augment_with_noise:
-                noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
+                noise_files = self.noise_files
             if self.image_data_generator.augment_with_same_class:
                 class_dir = os.path.join(self.directory, os.path.split(fname)[0])
 
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
-                                   noise_dir=noise_dir, class_dir=class_dir)
+                                   noise_files=noise_files, class_dir=class_dir)
 
             if self.image_data_generator.time_shift:
                 x = da.time_shift_spectrogram(x)
