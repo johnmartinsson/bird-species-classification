@@ -506,7 +506,8 @@ class DirectoryIterator(Iterator):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.directory = directory
-        self.noise_files = glob.glob(os.path.join(directory, "noise/*.wav"))
+        self.noise_files = glob.glob(os.path.join(os.path.dirname(directory), "noise/*.wav"))
+        print("Loaded ", len(self.noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
         if color_mode not in {'rgb', 'grayscale'}:
