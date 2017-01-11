@@ -103,3 +103,4 @@ visualizations
 resnet_sound_images/
 log
 experiments/
+*.png
