@@ -57,11 +57,12 @@ segment_size_seconds = 3
 
 # Paths
 source_dir = "./datasets/birdClef2016/wav"
-subset_root_dir = "./datasets/birdClef2016Subset"
+subset_root_dir = "./datasets/birdClef2016Whole"
 noise_dir = os.path.join(subset_root_dir, "noise")
 
 # Begin preprocessing
-random_species = np.random.choice(species, nb_species)
+#random_species = np.random.choice(species, nb_species)
+random_species = species
 
 xml_random_species = []
 print("Extracting random subset of xml_roots...")
@@ -88,14 +89,10 @@ for (p, r) in zip(progress, xml_random_species):
     filepath = os.path.join(source_dir, filename)
 
     r = np.random.rand()
-    class_dir = None
-    if r < 0.2:
-        class_dir = os.path.join(subset_root_dir, "valid", species)
-    else:
-        class_dir = os.path.join(subset_root_dir, "train", species)
+    class_dir = os.path.join(subset_root_dir, "train", species)
 
     if not os.path.exists(class_dir):
-        print("Create diractory: ", class_dir)
+        #print("Create diractory: ", class_dir)
         os.makedirs(class_dir)
 
     # preprocess the sound file, and save signal to class_dir, noise to
