@@ -46,10 +46,12 @@ def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
     signal_wave, noise_wave = preprocess_wave(wave, samplerate)
     basename = utils.get_basename_without_ext(filename)
 
-    signal_segments = split_into_segments(signal_wave, samplerate, segment_size_seconds)
-    noise_segments = split_into_segments(noise_wave, samplerate, segment_size_seconds)
-    save_segments_to_file(class_dir, signal_segments, basename, samplerate)
-    save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
+    if signal_wave.shape[0] > 0:
+        signal_segments = split_into_segments(signal_wave, samplerate, segment_size_seconds)
+        save_segments_to_file(class_dir, signal_segments, basename, samplerate)
+    if noise_wave.shape[0] > 0:
+        noise_segments = split_into_segments(noise_wave, samplerate, segment_size_seconds)
+        save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
 
 def save_segments_to_file(output_dir, segments, basename, samplerate):
     i_segment = 0
