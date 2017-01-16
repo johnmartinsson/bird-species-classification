@@ -72,7 +72,8 @@ def train_model(model_name, train_path, valid_path, batch_size, nb_classes, nb_e
         time_shift=True,
         pitch_shift=True,
         augment_with_same_class=True,
-        augment_with_noise=True)
+        augment_with_noise=True,
+        mfcc_delta=True)
 
     # validation data generator
     valid_datagen = SoundDataGenerator(
@@ -86,7 +87,7 @@ def train_model(model_name, train_path, valid_path, batch_size, nb_classes, nb_e
         target_size=(img_rows, img_cols),
         batch_size=batch_size,
         class_mode='categorical',
-        color_mode='grayscale'
+        color_mode='rgb'
         #save_to_dir='./visuals/augmented_samples'
         )
 
@@ -98,7 +99,7 @@ def train_model(model_name, train_path, valid_path, batch_size, nb_classes, nb_e
         target_size=(img_rows, img_cols),
         batch_size=batch_size,
         class_mode='categorical',
-        color_mode='grayscale'
+        color_mode='rgb'
         #save_to_dir='./visuals/validation_samples',
         )
 
@@ -144,11 +145,11 @@ parser.add_option("--model_name", dest="model_name")
 print("Options:", options)
 
 batch_size = 16
-nb_classes = 809
+nb_classes = 20
 nb_epoch   = 6
-nb_val_samples = 21421
-samples_per_epoch = 120769
-input_shape = (256, 512, 1)
+nb_val_samples = 613
+samples_per_epoch = 2213
+input_shape = (256, 512, 3)
 
 noise_path = options.noise_path
 train_path = options.train_path
