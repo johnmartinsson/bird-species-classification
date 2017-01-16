@@ -15,6 +15,7 @@ import scipy.ndimage as ndi
 from six.moves import range
 import os
 import threading
+import librosa
 
 from keras import backend as K
 
@@ -145,7 +146,33 @@ def array_to_img(x, dim_ordering='default', scale=True):
     else:
         raise Exception('Unsupported channel number: ', x.shape[2])
 
-def load_wav_as_narray(fname, target_size=None, noise_files=None,
+def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
+                           augment_with_noise=False, class_dir=None):
+    (fs, signal) = utils.read_wave_file(fname)
+
+    if class_dir:
+        signal = da.same_class_augmentation(signal, class_dir)
+
+    if augment_with_noise:
+        signal = da.noise_augmentation(signal, noise_files)
+
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=92)
+    mfcc_delta_3 = librosa.feature.delta(mfcc, width=3, order=1)
+    mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
+
+    mfcc = mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
+    mfcc_delta_3 = mfcc_delta_3.reshape(mfcc_delta_3.shape[0], mfcc_delta_3.shape[1], 1)
+    mfcc_delta_11 = mfcc_delta_11.reshape(mfcc_delta_11.shape[0], mfcc_delta_11.shape[1], 1)
+    mfcc_delta = np.concatenate([mfcc, mfcc_delta_3, mfcc_delta_11], axis=2)
+
+    if target_size:
+        mfcc_delta = scipy.misc.imresize(mfcc_delta, target_size)
+
+    return mfcc_delta
+
+
+
+def load_wav_as_spectrogram(fname, target_size=None, noise_files=None,
                        augment_with_noise=False, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
 
@@ -222,6 +249,8 @@ class SoundDataGenerator(object):
                  dim_ordering='default',
                  augment_with_same_class=False,
                  augment_with_noise=False,
+                 mfcc_delta=False,
+                 spectrogram=False,
                  time_shift=False,
                  pitch_shift=False):
         if dim_ordering == 'default':
@@ -597,10 +626,17 @@ class DirectoryIterator(Iterator):
             if self.image_data_generator.augment_with_same_class:
                 class_dir = os.path.join(self.directory, os.path.split(fname)[0])
 
-            x = load_wav_as_narray(os.path.join(self.directory, fname),
-                                   target_size=self.target_size,
-                                   noise_files=self.noise_files,
-                                   augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
+            if self.image_data_generator.spectrogram:
+                x = load_wav_as_spectrogram(os.path.join(self.directory, fname),
+                                       target_size=self.target_size,
+                                       noise_files=self.noise_files,
+                                       augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
+            elif self.image_data_generator.mfcc_delta:
+                x = load_wav_as_mfcc_delta(os.path.join(self.directory, fname),
+                                           target_size=self.target_size,
+                                           noise_files=self.noise_files,
+                                           augment_with_noise=self.image_data_generator.augment_with_noise,
+                                           class_dir=class_dir)
 
             if self.image_data_generator.time_shift:
                 x = da.time_shift_spectrogram(x)
