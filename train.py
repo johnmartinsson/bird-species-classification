@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 import time
 import pickle
@@ -7,19 +8,28 @@ from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option("--model_name", dest="model_name")
+parser.add_option("--train_path", dest="train_path")
+parser.add_option("--valid_path", dest="valid_path")
+parser.add_option("--noise_path", dest="noise_path")
+parser.add_option("--nb_iterations", dest="nb_iterations")
+parser.add_option("--basename", dest="basename")
+
 (options, args) = parser.parse_args()
 model_name = options.model_name
 
-
 # Training Settings
-nb_iterations = 20
+nb_iterations = int(options.nb_iterations)
 
-train_path = "/disk/martinsson-spring17/birdClef2016Whole/train"
-valid_path = "/disk/martinsson-spring17/birdClef2016Whole/valid"
-noise_path = "/home/martinsson-spring17/data/noise"
+train_path = options.train_path
+valid_path = options.valid_path
+noise_path = options.noise_path
 
-#basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + model_name
-basename = "2017_01_11_01:15:36_cuberun"
+basename = ""
+if options.basename:
+    basename = options.basename
+else:
+    basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + model_name
+
 weight_file_path = os.path.join("./weights", basename + ".h5")
 history_file_path = os.path.join("./history", basename + ".pkl")
 tmp_history_file_path = os.path.join("./history", basename + "_tmp.pkl")
@@ -27,6 +37,7 @@ lock_file  = basename + ".lock"
 
 # Arguments
 qsub_args = [
+    "qsub",
     "-cwd",
     "-l", "gpu=1",
     "-e", "./log/" + model_name+ "_run_job.sh.error",
@@ -65,7 +76,7 @@ def train():
             train_acc = pickle.load(input)
             valid_acc = pickle.load(input)
 
-    for i in range(14, nb_iterations):
+    for i in range(nb_iterations):
 
         # create lock file
         print("Creating lock file: ", lock_file)
@@ -74,9 +85,9 @@ def train():
         # submit job, train once
         print("Submitting Job ", str(i), "/", str(nb_iterations))
         if not i == 0:
-            call(["qsub"] + qsub_args + ['False'])
+            call(qsub_args + ['False'])
         else:
-            call(["qsub"] + qsub_args + ['True'])
+            call(qsub_args + ['True'])
 
         # block until job is finished
         while os.path.exists(lock_file):
