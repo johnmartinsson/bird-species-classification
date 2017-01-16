@@ -8,7 +8,7 @@ from sklearn import metrics
 
 import tqdm
 
-nb_classes = 20
+nb_classes = 809
 input_shape = (256, 512, 1)
 batch_size=32
 
@@ -60,19 +60,19 @@ def evaluate(model, data_filepath):
         # print("| ", y_preds[:5], " | ", y_true_cat, " |")
 
     print("")
-    print("- Top 1:", top_1)
-    print("- Top 2:", top_2)
-    print("- Top 3:", top_3)
-    print("- Top 4:", top_4)
-    print("- Top 5:", top_5)
+    print("- Top 1:", top_1/len(X_tests))
+    print("- Top 2:", top_2/len(X_tests))
+    print("- Top 3:", top_3/len(X_tests))
+    print("- Top 4:", top_4/len(X_tests))
+    print("- Top 5:", top_5/len(X_tests))
     print("")
     print("Mean Average Precision: ", np.mean(average_precision_scores))
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
-# model = CubeRun(nb_classes, input_shape)
-model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
-model.load_weights("./weights/2016_12_20_16:47:03_resnet.h5")
+model = CubeRun(nb_classes, input_shape)
+# model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
+model.load_weights("./weights/2017_01_11_01:15:36_cuberun.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
-evaluate(model, "./datasets/birdClef2016Subset/valid")
+evaluate(model, "/disk/martinsson-spring17/birdClef2016Whole/valid")
 

@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import numpy as np
+import random
 import glob
 import re
 import scipy
@@ -144,14 +145,15 @@ def array_to_img(x, dim_ordering='default', scale=True):
     else:
         raise Exception('Unsupported channel number: ', x.shape[2])
 
-def load_wav_as_narray(fname, target_size=None, noise_dir=None, class_dir=None):
+def load_wav_as_narray(fname, target_size=None, noise_files=None,
+                       augment_with_noise=False, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
 
     if class_dir:
         signal = da.same_class_augmentation(signal, class_dir)
 
-    if noise_dir:
-        signal = da.noise_augmentation(signal, noise_dir)
+    if augment_with_noise:
+        signal = da.noise_augmentation(signal, noise_files)
 
     spectrogram = sp.wave_to_sample_spectrogram(signal, fs)
 
@@ -261,13 +263,13 @@ class SoundDataGenerator(object):
             dim_ordering=self.dim_ordering,
             save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format)
 
-    def flow_from_directory(self, directory,
+    def flow_from_directory(self, directory, noise_dir,
                             target_size=(256, 256), color_mode='rgb',
                             classes=None, class_mode='categorical',
                             batch_size=32, shuffle=True, seed=None,
                             save_to_dir=None, save_prefix='', save_format='jpeg'):
         return DirectoryIterator(
-            directory, self,
+            directory, noise_dir, self,
             target_size=target_size, color_mode=color_mode,
             classes=classes, class_mode=class_mode,
             dim_ordering=self.dim_ordering,
@@ -497,7 +499,7 @@ class NumpyArrayIterator(Iterator):
 
 class DirectoryIterator(Iterator):
 
-    def __init__(self, directory, image_data_generator,
+    def __init__(self, directory, noise_dir, image_data_generator,
                  target_size=(256, 256), color_mode='rgb',
                  dim_ordering='default',
                  classes=None, class_mode='categorical',
@@ -506,6 +508,11 @@ class DirectoryIterator(Iterator):
         if dim_ordering == 'default':
             dim_ordering = K.image_dim_ordering()
         self.directory = directory
+        # Cache noise sets
+        noise_files = glob.glob(os.path.join(noise_dir, "*.wav"))
+        random.shuffle(noise_files)
+        self.noise_files = noise_files
+        print("Loaded ", len(noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
         if color_mode not in {'rgb', 'grayscale'}:
@@ -586,16 +593,14 @@ class DirectoryIterator(Iterator):
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
 
-            noise_dir = None
             class_dir = None
-            if self.image_data_generator.augment_with_noise:
-                noise_dir = os.path.join(os.path.dirname(self.directory), "noise")
             if self.image_data_generator.augment_with_same_class:
                 class_dir = os.path.join(self.directory, os.path.split(fname)[0])
 
             x = load_wav_as_narray(os.path.join(self.directory, fname),
                                    target_size=self.target_size,
-                                   noise_dir=noise_dir, class_dir=class_dir)
+                                   noise_files=self.noise_files,
+                                   augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
 
             if self.image_data_generator.time_shift:
                 x = da.time_shift_spectrogram(x)

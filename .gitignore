@@ -94,3 +94,13 @@ tutorial_data/
 datasets
 .*.swp
 *.wav.gz
+history/
+job_done.lock
+resnet_data/
+resnet_sound_data/
+visuals/
+visualizations
+resnet_sound_images/
+log
+experiments/
+*.png
