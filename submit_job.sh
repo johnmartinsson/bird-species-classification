@@ -8,5 +8,4 @@ qsub -cwd \
   -l gpu=1\
   -e ./log/run_job.sh.error \
   -o ./log/run_job.sh.log \
-  ./run_job.sh
-
+  ./run_job_evaluate.sh

@@ -17,6 +17,7 @@ from keras import backend as K
 from keras.optimizers import SGD
 
 from bird.models.cuberun import CubeRun
+from bird.models.resnet import ResNetBuilder
 from bird.generators.sound import SoundDataGenerator
 
 # Setup Callbacks for History
@@ -28,13 +29,20 @@ class HistoryCollector(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.data.append(logs.get(self.name))
 
-def train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
+def train_model(model_name, train_path, valid_path, batch_size, nb_classes, nb_epoch,
                 nb_val_samples, samples_per_epoch, input_shape,
                 weight_file_path, history_file_path, first_epoch, lock_file):
 
     img_rows, img_cols, nb_channels = input_shape
 
-    model = CubeRun(nb_classes, input_shape)
+    model = None
+    if model_name == 'cuberun':
+	    model = CubeRun(nb_classes, input_shape)
+    elif model_name == 'resnet_18':
+            model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+    else:
+        raise ValueError("Can not find model ", model_name, ".")
+
     sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy',
                   optimizer=sgd,
@@ -129,8 +137,11 @@ parser.add_option("--weight_path", dest="weight_path")
 parser.add_option("--history_path", dest="history_path")
 parser.add_option("--first_epoch", dest="first_epoch")
 parser.add_option("--lock_file", dest="lock_file")
+parser.add_option("--model_name", dest="model_name")
 
 (options, args) = parser.parse_args()
+
+print("Options:", options)
 
 batch_size = 16
 nb_classes = 809
@@ -146,9 +157,8 @@ history_file_path = options.history_path
 weight_file_path = options.weight_path
 first_epoch = options.first_epoch
 lock_file = options.lock_file
+model_name = options.model_name
 
-print("Options:", options)
-
-train_model(train_path, valid_path, batch_size, nb_classes, nb_epoch,
+train_model(model_name, train_path, valid_path, batch_size, nb_classes, nb_epoch,
             nb_val_samples, samples_per_epoch, input_shape, weight_file_path,
             history_file_path, first_epoch, lock_file)
