@@ -32,8 +32,8 @@ def img_spectrogram_from_wave_file(filepath):
     save_matrix_to_file(Sxx, "Log Amplitude Spectrogram", baseName + "_AMP.png")
 
 def sprengel_binary_mask_from_wave_file(filepath):
-    fs, x = utils.read_gzip_wave_file(filepath)
-    Sxx = sp.wave_to_amplitude_spectrogram(x, fs, 512, 128)[256:]
+    fs, x = utils.read_wave_file(filepath)
+    Sxx = sp.wave_to_amplitude_spectrogram(x, fs)
 
     # plot spectrogram
     plt.figure(1)
@@ -223,7 +223,8 @@ def plot_spectrogram_from_wave_file(filename):
     plot_matrix(Sxx, "Amplitude Spectrogram")
 
 def subplot_image(Sxx, n_subplot, title):
-    cmap = grayify_cmap('cubehelix_r')
+    #cmap = grayify_cmap('cubehelix_r')
+    cmap = plt.cm.get_cmap('jet')
     # cmap = grayify_cmap('jet')
     plt.subplot(n_subplot)
     plt.title(title)
