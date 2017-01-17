@@ -8,25 +8,7 @@ import tqdm
 import scipy.signal as sps
 
 from bird import utils
-from bird import loader
 from bird import signal_processing as sp
-
-# def preprocess_data_set(data_path, output_directory):
-    # wave_files = glob.glob(os.path.join(data_path, "*.wav.gz"))
-    # file2labels_path = os.path.join(data_path, "file2labels.csv")
-
-    # file2labels = loader.read_file2labels(file2labels_path);
-    # file2labels_path_new = os.path.join(output_directory, "file2labels.csv")
-
-    # with open(file2labels_path_new, 'w') as file2labels_csv:
-        # file2labelswriter = csv.writer(file2labels_csv)
-
-        # progress = tqdm.tqdm(range(len(wave_files)))
-        # for (f, p) in zip(wave_files, progress):
-            # basename = utils.get_basename_without_ext(f)
-            # labels = file2labels[basename]
-            # preprocess_sound_file(f, output_directory, labels,
-                                  # file2labelswriter)
 
 def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
     """ Preprocess sound file. Loads sound file from filename, downsampels,
@@ -80,7 +62,6 @@ def split_into_segments(wave, samplerate, segment_time):
     segments = np.split(repeated_wave, int(nb_segments), axis=0)
 
     return segments
-
 
 def preprocess_wave(wave, fs):
     """ Preprocess a signal by computing the noise and signal mask of the
@@ -267,21 +248,3 @@ def normalize(X):
 
     X = (X-mi)/(ma-mi)
     return X
-
-# def preprocess_sound_file(filename, output_directory, labels, file2labelswriter):
-    # basename = utils.get_basename_without_ext(filename)
-    # fs, x = utils.read_gzip_wave_file(filename)
-    # signal_wave, noise_wave = preprocess_wave(x, fs)
-
-    # if len(signal_wave) > 0:
-        # filename_chunk = os.path.join(output_directory, basename +
-                                      # "_signal_chunk.wav")
-        # utils.write_wave_to_file(filename_chunk, fs, signal_wave)
-        # file2labelswriter.writerow([utils.get_basename_without_ext(filename_chunk)] + labels)
-
-    # if len(noise_wave) > 0:
-        # filename_chunk = os.path.join(output_directory, basename +
-                                      # "_noise_chunk.wav")
-        # utils.write_wave_to_file(filename_chunk, fs, noise_wave)
-
-

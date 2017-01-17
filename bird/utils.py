@@ -13,7 +13,6 @@ from scipy.io import wavfile
 from functools import reduce
 
 from bird import preprocessing as pp
-from bird import loader as loader
 
 def get_basename_without_ext(filepath):
     basename = os.path.basename(filepath).split(os.extsep)[0]
@@ -51,7 +50,6 @@ def read_gzip_wave_file(filename):
 
             return fs, x
 
-
 def read_wave_file(filename):
     """ Read a wave file from disk
     # Arguments
@@ -77,24 +75,3 @@ def read_wave_file(filename):
     x = x/32768.0
 
     return fs, x
-
-#def wave_to_spectrogram(wave=np.array([]), fs=None, nperseg=512, noverlap=384):
-    #"""Given a wave form returns the spectrogram of the wave form.
-    ## Arguments
-        #wave : the wave form (default np.array([]))
-        #fs   : the rate at which the wave form has been sampled
-    ## Returns
-        #spectrogram : the computed spectrogram (numpy array)
-    #"""
-    #window = signal.get_window('hanning', nperseg)
-    #return signal.spectrogram(wave, fs, window, nperseg, noverlap,
-                              #mode='magnitude')
-#def wave_to_spectrogram_aux(wave, fs):
-    #(f, t, Sxx) = wave_to_spectrogram(wave, fs)
-    #return Sxx
-
-#def wave_to_log_spectrogram_aux(wave, fs):
-    #""" Compute a log magnitude spectrogram from the given signal
-    #"""
-    #Sxx = wave_to_spectrogram_aux(wave, fs)
-    #return np.log(Sxx)
