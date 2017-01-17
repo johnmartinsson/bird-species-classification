@@ -15,6 +15,11 @@ import scipy.ndimage as ndi
 from six.moves import range
 import os
 import threading
+import mock
+import sys
+sys.modules.update((mod_name, mock.Mock()) for mod_name in ['matplotlib',
+                                                            'matplotlib.pyplot',
+                                                            'matplotlib.image'])
 import librosa
 
 from keras import backend as K
