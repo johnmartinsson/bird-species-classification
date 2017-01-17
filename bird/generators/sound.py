@@ -28,70 +28,6 @@ from bird import utils
 from bird import data_augmentation as da
 from bird import signal_processing as sp
 
-def random_rotation(x, rg, row_index=1, col_index=2, channel_index=0,
-                    fill_mode='nearest', cval=0.):
-    theta = np.pi / 180 * np.random.uniform(-rg, rg)
-    rotation_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
-                                [np.sin(theta), np.cos(theta), 0],
-                                [0, 0, 1]])
-
-    h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = transform_matrix_offset_center(rotation_matrix, h, w)
-    x = apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    return x
-
-
-def random_shift(x, wrg, hrg, row_index=1, col_index=2, channel_index=0,
-                 fill_mode='nearest', cval=0.):
-    h, w = x.shape[row_index], x.shape[col_index]
-    tx = np.random.uniform(-hrg, hrg) * h
-    ty = np.random.uniform(-wrg, wrg) * w
-    translation_matrix = np.array([[1, 0, tx],
-                                   [0, 1, ty],
-                                   [0, 0, 1]])
-
-    transform_matrix = translation_matrix  # no need to do offset
-    x = apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    return x
-
-
-def random_shear(x, intensity, row_index=1, col_index=2, channel_index=0,
-                 fill_mode='nearest', cval=0.):
-    shear = np.random.uniform(-intensity, intensity)
-    shear_matrix = np.array([[1, -np.sin(shear), 0],
-                             [0, np.cos(shear), 0],
-                             [0, 0, 1]])
-
-    h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = transform_matrix_offset_center(shear_matrix, h, w)
-    x = apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    return x
-
-
-def random_zoom(x, zoom_range, row_index=1, col_index=2, channel_index=0,
-                fill_mode='nearest', cval=0.):
-    if len(zoom_range) != 2:
-        raise Exception('zoom_range should be a tuple or list of two floats. '
-                        'Received arg: ', zoom_range)
-
-    if zoom_range[0] == 1 and zoom_range[1] == 1:
-        zx, zy = 1, 1
-    else:
-        zx, zy = np.random.uniform(zoom_range[0], zoom_range[1], 2)
-    zoom_matrix = np.array([[zx, 0, 0],
-                            [0, zy, 0],
-                            [0, 0, 1]])
-
-    h, w = x.shape[row_index], x.shape[col_index]
-    transform_matrix = transform_matrix_offset_center(zoom_matrix, h, w)
-    x = apply_transform(x, transform_matrix, channel_index, fill_mode, cval)
-    return x
-
-
-def random_barrel_transform(x, intensity):
-    # TODO
-    pass
-
 
 def random_channel_shift(x, intensity, channel_index=0):
     x = np.rollaxis(x, channel_index, 0)
@@ -151,6 +87,26 @@ def array_to_img(x, dim_ordering='default', scale=True):
     else:
         raise Exception('Unsupported channel number: ', x.shape[2])
 
+def load_wav_as_mfcc(fname, target_size=None, noise_files=None,
+                       augment_with_noise=False, class_dir=None):
+    (fs, signal) = utils.read_wave_file(fname)
+
+    if class_dir:
+        signal = da.same_class_augmentation(signal, class_dir)
+
+    if augment_with_noise:
+        signal = da.noise_augmentation(signal, noise_files)
+
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=128)
+
+    if target_size:
+        mfcc= scipy.misc.imresize(mfcc, target_size)
+
+    mfcc = mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
+
+    return mfcc
+
+
 def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
                            augment_with_noise=False, class_dir=None):
     (fs, signal) = utils.read_wave_file(fname)
@@ -161,21 +117,21 @@ def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
     if augment_with_noise:
         signal = da.noise_augmentation(signal, noise_files)
 
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=92)
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=128)
     mfcc_delta_3 = librosa.feature.delta(mfcc, width=3, order=1)
     mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
+    mfcc_delta_19 = librosa.feature.delta(mfcc, width=19, order=1)
 
     mfcc = mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
     mfcc_delta_3 = mfcc_delta_3.reshape(mfcc_delta_3.shape[0], mfcc_delta_3.shape[1], 1)
     mfcc_delta_11 = mfcc_delta_11.reshape(mfcc_delta_11.shape[0], mfcc_delta_11.shape[1], 1)
-    mfcc_delta = np.concatenate([mfcc, mfcc_delta_3, mfcc_delta_11], axis=2)
+    mfcc_delta_19 = mfcc_delta_19.reshape(mfcc_delta_19.shape[0], mfcc_delta_19.shape[1], 1)
+    mfcc_delta = np.concatenate([mfcc, mfcc_delta_3, mfcc_delta_11, mfcc_delta_19], axis=2)
 
     if target_size:
         mfcc_delta = scipy.misc.imresize(mfcc_delta, target_size)
 
     return mfcc_delta
-
-
 
 def load_wav_as_spectrogram(fname, target_size=None, noise_files=None,
                        augment_with_noise=False, class_dir=None):
@@ -195,10 +151,6 @@ def load_wav_as_spectrogram(fname, target_size=None, noise_files=None,
     spectrogram = spectrogram.reshape((spectrogram.shape[0],
                                        spectrogram.shape[1], 1))
     return spectrogram
-
-def list_pictures(directory, ext='jpg|jpeg|bmp|png'):
-    return [os.path.join(directory, f) for f in sorted(os.listdir(directory))
-            if os.path.isfile(os.path.join(directory, f)) and re.match('([\w]+\.(?:' + ext + '))', f)]
 
 class SoundDataGenerator(object):
     '''Generate minibatches with
@@ -254,8 +206,6 @@ class SoundDataGenerator(object):
                  dim_ordering='default',
                  augment_with_same_class=False,
                  augment_with_noise=False,
-                 mfcc_delta=False,
-                 spectrogram=False,
                  time_shift=False,
                  pitch_shift=False):
         if dim_ordering == 'default':
@@ -288,23 +238,14 @@ class SoundDataGenerator(object):
             raise Exception('zoom_range should be a float or '
                             'a tuple or list of two floats. '
                             'Received arg: ', zoom_range)
-
-    def flow(self, X, y=None, batch_size=32, shuffle=True, seed=None,
-             save_to_dir=None, save_prefix='', save_format='jpeg'):
-        return NumpyArrayIterator(
-            X, y, self,
-            batch_size=batch_size, shuffle=shuffle, seed=seed,
-            dim_ordering=self.dim_ordering,
-            save_to_dir=save_to_dir, save_prefix=save_prefix, save_format=save_format)
-
     def flow_from_directory(self, directory, noise_dir,
-                            target_size=(256, 256), color_mode='rgb',
+                            target_size=(256, 256), audio_mode='spectrogram',
                             classes=None, class_mode='categorical',
                             batch_size=32, shuffle=True, seed=None,
                             save_to_dir=None, save_prefix='', save_format='jpeg'):
         return DirectoryIterator(
             directory, noise_dir, self,
-            target_size=target_size, color_mode=color_mode,
+            target_size=target_size, audio_mode=audio_mode,
             classes=classes, class_mode=class_mode,
             dim_ordering=self.dim_ordering,
             batch_size=batch_size, shuffle=shuffle, seed=seed,
@@ -481,60 +422,10 @@ class Iterator(object):
     def __next__(self, *args, **kwargs):
         return self.next(*args, **kwargs)
 
-
-class NumpyArrayIterator(Iterator):
-
-    def __init__(self, X, y, image_data_generator,
-                 batch_size=32, shuffle=False, seed=None,
-                 dim_ordering='default',
-                 save_to_dir=None, save_prefix='', save_format='jpeg'):
-        if y is not None and len(X) != len(y):
-            raise Exception('X (images tensor) and y (labels) '
-                            'should have the same length. '
-                            'Found: X.shape = %s, y.shape = %s' % (np.asarray(X).shape, np.asarray(y).shape))
-        if dim_ordering == 'default':
-            dim_ordering = K.image_dim_ordering()
-        self.X = X
-        self.y = y
-        self.image_data_generator = image_data_generator
-        self.dim_ordering = dim_ordering
-        self.save_to_dir = save_to_dir
-        self.save_prefix = save_prefix
-        self.save_format = save_format
-        super(NumpyArrayIterator, self).__init__(X.shape[0], batch_size, shuffle, seed)
-
-    def next(self):
-        # for python 2.x.
-        # Keeps under lock only the mechanism which advances
-        # the indexing of each batch
-        # see http://anandology.com/blog/using-iterators-and-generators/
-        with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
-        # The transformation of images is not under thread lock so it can be done in parallel
-        batch_x = np.zeros(tuple([current_batch_size] + list(self.X.shape)[1:]))
-        for i, j in enumerate(index_array):
-            x = self.X[j]
-            x = self.image_data_generator.random_transform(x.astype('float32'))
-            x = self.image_data_generator.standardize(x)
-            batch_x[i] = x
-        if self.save_to_dir:
-            for i in range(current_batch_size):
-                img = array_to_img(batch_x[i], self.dim_ordering, scale=True)
-                fname = '{prefix}_{index}_{hash}.{format}'.format(prefix=self.save_prefix,
-                                                                  index=current_index + i,
-                                                                  hash=np.random.randint(1e4),
-                                                                  format=self.save_format)
-                img.save(os.path.join(self.save_to_dir, fname))
-        if self.y is None:
-            return batch_x
-        batch_y = self.y[index_array]
-        return batch_x, batch_y
-
-
 class DirectoryIterator(Iterator):
 
     def __init__(self, directory, noise_dir, image_data_generator,
-                 target_size=(256, 256), color_mode='rgb',
+                 target_size=(256, 256), audio_mode='spectrogram',
                  dim_ordering='default',
                  classes=None, class_mode='categorical',
                  batch_size=32, shuffle=True, seed=None,
@@ -549,17 +440,17 @@ class DirectoryIterator(Iterator):
         print("Loaded ", len(noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
-        if color_mode not in {'rgb', 'grayscale'}:
-            raise ValueError('Invalid color mode:', color_mode,
-                             '; expected "rgb" or "grayscale".')
-        self.color_mode = color_mode
+        if audio_mode not in {'spectrogram', 'mfcc', 'mfcc_delta'}:
+            raise ValueError('Invalid audio mode:', audio_mode,
+                             '; expected "spectrogram", "mfcc" or "mfcc_delta".')
+        self.audio_mode = audio_mode
         self.dim_ordering = dim_ordering
-        if self.color_mode == 'rgb':
+        if self.audio_mode == 'mfcc_delta':
             if self.dim_ordering == 'tf':
-                self.image_shape = self.target_size + (3,)
+                self.image_shape = self.target_size + (4,)
             else:
-                self.image_shape = (3,) + self.target_size
-        else:
+                self.image_shape = (4,) + self.target_size
+        elif self.audio_mode == 'mfcc' or self.audio_mode == 'spectrogram':
             if self.dim_ordering == 'tf':
                 self.image_shape = self.target_size + (1,)
             else:
@@ -622,7 +513,6 @@ class DirectoryIterator(Iterator):
             index_array, current_index, current_batch_size = next(self.index_generator)
         # The transformation of images is not under thread lock so it can be done in parallel
         batch_x = np.zeros((current_batch_size,) + self.image_shape)
-        grayscale = self.color_mode == 'grayscale'
         # build batch of image data
         for i, j in enumerate(index_array):
             fname = self.filenames[j]
@@ -631,12 +521,19 @@ class DirectoryIterator(Iterator):
             if self.image_data_generator.augment_with_same_class:
                 class_dir = os.path.join(self.directory, os.path.split(fname)[0])
 
-            if self.image_data_generator.spectrogram:
+            if self.audio_mode == 'spectrogram':
                 x = load_wav_as_spectrogram(os.path.join(self.directory, fname),
                                        target_size=self.target_size,
                                        noise_files=self.noise_files,
                                        augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
-            elif self.image_data_generator.mfcc_delta:
+
+            elif self.audio_mode == 'mfcc':
+                x = load_wav_as_mfcc(os.path.join(self.directory, fname),
+                                           target_size=self.target_size,
+                                           noise_files=self.noise_files,
+                                           augment_with_noise=self.image_data_generator.augment_with_noise,
+                                           class_dir=class_dir)
+            elif self.audio_mode == 'mfcc_delta':
                 x = load_wav_as_mfcc_delta(os.path.join(self.directory, fname),
                                            target_size=self.target_size,
                                            noise_files=self.noise_files,
