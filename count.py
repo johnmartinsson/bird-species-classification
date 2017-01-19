@@ -1,11 +1,35 @@
+#!/usr/bin/python
 import os
 import glob
-from bird import loader as l
+import numpy as np
+from optparse import OptionParser
+from bird import loader
 
-validation = "./datasets/birdClef2016Whole/valid"
-train = "./datasets/birdClef2016Whole/train"
+parser = OptionParser()
+parser.add_option("--valid_path", dest="valid_path")
+parser.add_option("--train_path", dest="train_path")
+(options, args) = parser.parse_args()
 
-for (v, t) in zip(os.listdir(validation), os.listdir(train)):
-    nb_valid = len(l.group_segments(glob.glob(os.path.join(validation, v, "*.wav"))))
-    nb_train = len(l.group_segments(glob.glob(os.path.join(train, t, "*.wav"))))
-    print(v, nb_valid/(nb_valid+nb_train))
+validation = options.valid_path
+train = options.train_path
+
+stats = []
+
+for species in os.listdir(train):
+    nb_valid = len(loader.group_segments(glob.glob(os.path.join(validation, species, "*.wav"))))
+    nb_train = len(loader.group_segments(glob.glob(os.path.join(train, species, "*.wav"))))
+    stat = {
+        "species":species,
+        "validation_samples":nb_valid,
+        "training_samples":nb_train
+    }
+    stats.append(stat)
+
+stats_sorted = sorted(stats, key=lambda x: x['training_samples'],
+                      reverse=True)
+top_10 = stats_sorted[:10]
+bot_10 = stats_sorted[len(stats_sorted)-10:]
+print("Top 10")
+[print(x['species'], x['training_samples']) for x in top_10]
+print("Bot 10")
+[print(x['species'], x['training_samples']) for x in bot_10]
