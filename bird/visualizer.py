@@ -13,6 +13,23 @@ from bird import preprocessing as pp
 from bird import signal_processing as sp
 from bird import data_augmentation as da
 
+def plot_accuracy_by_trainingsamples(picke_file):
+    xs = zip(stats.keys(), stats.values())
+    ys = [a for a in xs]
+    xs = sorted(ys, key=lambda t: t[1]["training_samples"], reverse=True)
+    xss = chunks(xs, 10)
+    yss = []
+    for xs in xss:
+        ys = []
+        for (species, x) in xs:
+            correct = x["correct"]
+            incorrect = x["incorrect"]
+            accuracy = correct/(correct+incorrect)
+            ys.append(accuracy)
+        yss.append(ys)
+    for ys in yss:
+        print("accuracy: ", np.mean(ys))
+
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
     for (f, p) in zip(files, progress):
