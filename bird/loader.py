@@ -23,6 +23,7 @@ def load_test_data_birdclef(directory, target_size):
             classes.append(subdir)
     nb_classes = len(classes)
     class_indices = dict(zip(classes, range(nb_classes)))
+    index_to_species = dict(zip(range(nb_classes), classes))
 
     X_test = []
     Y_test = []
@@ -38,7 +39,7 @@ def load_test_data_birdclef(directory, target_size):
             y = np.zeros(nb_classes)
             y[class_indices[subdir]] = 1.0
             Y_test.append(y)
-    return np.asarray(X_test), np.asarray(Y_test)
+    return np.asarray(X_test), np.asarray(Y_test), index_to_species
 
 def load_segments(segments, target_size):
     data = []

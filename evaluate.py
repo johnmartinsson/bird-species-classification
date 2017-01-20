@@ -5,18 +5,47 @@ from bird.models.resnet import ResNetBuilder
 from bird import utils
 from bird import loader
 from sklearn import metrics
+import os
+import glob
+from optparse import OptionParser
 
 import tqdm
 
-nb_classes = 809
-input_shape = (256, 512, 1)
-batch_size=32
+parser = OptionParser()
+parser.add_option("--valid_path", dest="valid_path")
+parser.add_option("--train_path", dest="train_path")
+(options, args) = parser.parse_args()
+
+validation = options.valid_path
+train = options.train_path
+
+def chunks(l, n):
+    chunk_size = int(np.ceil(len(l)/n))
+    """Yield n chunks from l."""
+    for i in range(0, len(l), chunk_size):
+        yield l[i:i + chunk_size]
 
 def evaluate(model, data_filepath):
+    stats = {}
+
+
     # (X_tests, Y_tests) = loader.load_test_data(data_filepath, file2labels_filepath,
                                                # nb_classes=nb_classes)
-    (X_tests, Y_tests) = loader.load_test_data_birdclef(data_filepath,
-                                                      input_shape)
+    (X_tests, Y_tests, index_to_species) = loader.load_test_data_birdclef(data_filepath,
+                                                                          input_shape)
+
+    # init all species
+    for i in range(nb_classes):
+        stats[index_to_species[i]] = {
+            "correct" : 0,
+            "incorrect" : 0
+        }
+
+    for species in os.listdir(train):
+        nb_valid = len(loader.group_segments(glob.glob(os.path.join(validation, species, "*.wav"))))
+        nb_train = len(loader.group_segments(glob.glob(os.path.join(train, species, "*.wav"))))
+        stats[species]["validation_samples"] = nb_valid
+        stats[species]["training_samples"] = nb_train
 
     top_1 = 0
     top_2 = 0
@@ -38,6 +67,11 @@ def evaluate(model, data_filepath):
         # print("y score", y_score)
         y_true = Y_test
         y_true_cat = np.argmax(y_true)
+
+        if y_pred == y_true_cat:
+            stats[index_to_species[y_true_cat]]["correct"] += 1
+        else:
+            stats[index_to_species[y_true_cat]]["incorrect"] += 1
 
         # compute average precision score
         average_precision_score = metrics.average_precision_score(y_true, y_score)
@@ -70,9 +104,27 @@ def evaluate(model, data_filepath):
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
+    xs = zip(stats.keys(), stats.values())
+    ys = [a for a in xs]
+    xs = sorted(ys, key=lambda t: t[1]["training_samples"], reverse=True)
+    xss = chunks(xs, 10)
+    for xs in xss:
+        accuracies = []
+        for (species, x) in xs:
+            correct = x["correct"]
+            incorrect = x["incorrect"]
+            accuracy = correct/(correct+incorrect)
+            accuracies.append(accuracy)
+            # print(species, " samples ", x["training_samples"], " accuracy ", accuracy)
+        for a in accuracies:
+            print("Accuracy: ", a)
+
+nb_classes = 20
+input_shape = (256, 512, 1)
+batch_size=32
+
 model = CubeRun(nb_classes, input_shape)
 # model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
-model.load_weights("./weights/2017_01_11_01:15:36_cuberun.h5")
+model.load_weights("./weights/2016_12_19_13:10:33_cuberun.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
-evaluate(model, "/disk/martinsson-spring17/birdClef2016Whole/valid")
-
+evaluate(model, validation)
