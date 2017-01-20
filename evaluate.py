@@ -1,4 +1,5 @@
 import numpy as np
+import pickle
 from functools import reduce
 from bird.models.cuberun import CubeRun
 from bird.models.resnet import ResNetBuilder
@@ -104,27 +105,15 @@ def evaluate(model, data_filepath):
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
-    xs = zip(stats.keys(), stats.values())
-    ys = [a for a in xs]
-    xs = sorted(ys, key=lambda t: t[1]["training_samples"], reverse=True)
-    xss = chunks(xs, 10)
-    for xs in xss:
-        accuracies = []
-        for (species, x) in xs:
-            correct = x["correct"]
-            incorrect = x["incorrect"]
-            accuracy = correct/(correct+incorrect)
-            accuracies.append(accuracy)
-            # print(species, " samples ", x["training_samples"], " accuracy ", accuracy)
-        for a in accuracies:
-            print("Accuracy: ", a)
+    with open("test.pkl", "wb") as output:
+        pickle.dump(stats, output, pickle.HIGHEST_PROTOCOL)
 
-nb_classes = 20
+nb_classes = 809
 input_shape = (256, 512, 1)
 batch_size=32
 
-model = CubeRun(nb_classes, input_shape)
-# model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
-model.load_weights("./weights/2016_12_19_13:10:33_cuberun.h5")
+# model = CubeRun(nb_classes, input_shape)
+model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+model.load_weights("./weights/2017_01_18_19:27:53_resnet_18.h5")
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 evaluate(model, validation)
