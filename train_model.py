@@ -40,6 +40,14 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
 	    model = CubeRun(nb_classes, input_shape)
     elif model_name == 'resnet_18':
             model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+    elif model_name == 'resnet_34':
+            model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
+    elif model_name == 'resnet_50':
+            model = ResNetBuilder.build_resnet_50(input_shape, nb_classes)
+    elif model_name == 'resnet_101':
+            model = ResNetBuilder.build_resnet_101(input_shape, nb_classes)
+    elif model_name == 'resnet_152':
+            model = ResNetBuilder.build_resnet_152(input_shape, nb_classes)
     else:
         raise ValueError("Can not find model ", model_name, ".")
 
@@ -69,10 +77,10 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
     # train data generator
     train_datagen = SoundDataGenerator(
         rescale=1./255,
-        time_shift=False,
-        pitch_shift=False,
-        augment_with_same_class=False,
-        augment_with_noise=False)
+        time_shift=True,
+        pitch_shift=True,
+        augment_with_same_class=True,
+        augment_with_noise=True)
 
     # validation data generator
     valid_datagen = SoundDataGenerator(
@@ -146,10 +154,10 @@ print("Options:", options)
 batch_size = 16
 nb_classes = 20
 nb_epoch   = 6
-nb_val_samples = 613
-samples_per_epoch = 2213
-input_shape = (256, 256, 1)
-audio_mode = 'mfcc'
+nb_val_samples = 309
+samples_per_epoch = 2417
+input_shape = (256, 512, 1)
+audio_mode = 'spectrogram'
 
 noise_path = options.noise_path
 train_path = options.train_path
