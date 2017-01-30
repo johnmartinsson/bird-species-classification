@@ -33,3 +33,5 @@ print("Top 10")
 [print(x['species'], x['training_samples']) for x in top_10]
 print("Bot 10")
 [print(x['species'], x['training_samples']) for x in bot_10]
+print("proportion")
+[print(x['species'], x['validation_samples']/(x['training_samples']+x['validation_samples'])) for x in stats_sorted]
