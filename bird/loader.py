@@ -31,7 +31,7 @@ def load_test_data_birdclef(directory, target_size):
         subpath = os.path.join(directory, subdir)
         # load sound data
         class_segments = glob.glob(os.path.join(subpath, "*.wav"))
-        print(subdir+": ", len(class_segments))
+        # print(subdir+": ", len(class_segments))
         samples = group_segments(class_segments)
         for sample in samples:
             data = load_segments(sample, target_size)

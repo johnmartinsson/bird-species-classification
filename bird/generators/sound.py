@@ -122,14 +122,17 @@ def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
     mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
     mfcc_delta_19 = librosa.feature.delta(mfcc, width=19, order=1)
 
+    if target_size:	
+        mfcc = scipy.misc.imresize(mfcc, target_size)
+        mfcc_delta_3 = scipy.misc.imresize(mfcc_delta_3, target_size)
+        mfcc_delta_11 = scipy.misc.imresize(mfcc_delta_11, target_size)
+        mfcc_delta_19 = scipy.misc.imresize(mfcc_delta_19, target_size)
+
     mfcc = mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
     mfcc_delta_3 = mfcc_delta_3.reshape(mfcc_delta_3.shape[0], mfcc_delta_3.shape[1], 1)
     mfcc_delta_11 = mfcc_delta_11.reshape(mfcc_delta_11.shape[0], mfcc_delta_11.shape[1], 1)
     mfcc_delta_19 = mfcc_delta_19.reshape(mfcc_delta_19.shape[0], mfcc_delta_19.shape[1], 1)
     mfcc_delta = np.concatenate([mfcc, mfcc_delta_3, mfcc_delta_11, mfcc_delta_19], axis=2)
-
-    if target_size:
-        mfcc_delta = scipy.misc.imresize(mfcc_delta, target_size)
 
     return mfcc_delta
 
