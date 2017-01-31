@@ -13,18 +13,15 @@ from optparse import OptionParser
 import tqdm
 
 parser = OptionParser()
-parser.add_option("--valid_path", dest="valid_path")
-parser.add_option("--train_path", dest="train_path")
+parser.add_option("--root_path", dest="root_path")
+parser.add_option("--model_name", dest="model_name")
+parser.add_option("--weight_path", dest="weight_path")
 (options, args) = parser.parse_args()
 
-validation = options.valid_path
-train = options.train_path
-
-def chunks(l, n):
-    chunk_size = int(np.ceil(len(l)/n))
-    """Yield n chunks from l."""
-    for i in range(0, len(l), chunk_size):
-        yield l[i:i + chunk_size]
+validation = os.path.join(options.root_path, "valid")
+train = os.path.join(options.root_path, "train")
+model_name = options.model_name
+weight_path = options.weight_path
 
 def evaluate(model, data_filepath):
     stats = {}
@@ -108,12 +105,14 @@ def evaluate(model, data_filepath):
     with open("test.pkl", "wb") as output:
         pickle.dump(stats, output, pickle.HIGHEST_PROTOCOL)
 
-nb_classes = 809
+nb_classes = 20
 input_shape = (256, 512, 1)
 batch_size=32
 
-# model = CubeRun(nb_classes, input_shape)
-model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
-model.load_weights("./weights/2017_01_18_19:27:53_resnet_18.h5")
+if model_name == "cuberun":
+    model = CubeRun(nb_classes, input_shape)
+elif model_name == "resnet":
+    model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+model.load_weights(weight_path)
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 evaluate(model, validation)
