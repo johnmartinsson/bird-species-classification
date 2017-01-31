@@ -2,38 +2,39 @@
 import os
 import time
 import pickle
+import configparser
+import shutil
 from time import localtime, strftime
 from subprocess import call
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option("--model_name", dest="model_name")
-parser.add_option("--train_path", dest="train_path")
-parser.add_option("--valid_path", dest="valid_path")
-parser.add_option("--noise_path", dest="noise_path")
-parser.add_option("--nb_iterations", dest="nb_iterations")
-parser.add_option("--basename", dest="basename")
-
+parser.add_option("--config_file", dest="config_file")
 (options, args) = parser.parse_args()
-model_name = options.model_name
 
-# Training Settings
-nb_iterations = int(options.nb_iterations)
+config_file = options.config_file
+config_parser = configparser.ConfigParser()
+config_parser.read(config_file)
 
-train_path = options.train_path
-valid_path = options.valid_path
-noise_path = options.noise_path
+model_name = config_parser['MODEL']['ModelName']
+basename = config_parser['PATHS']['BaseName']
+nb_iterations = int(config_parser['MODEL']['NumberOfIterations'])
 
-basename = ""
-if options.basename:
-    basename = options.basename
+
+if os.path.exists(basename):
+    basename = basename
+    config_file = os.path.join(basename, config_file)
 else:
-    basename = strftime("%Y_%m_%d_%H:%M:%S_", localtime()) + model_name
+    basename = strftime("%Y_%m_%d_%H%M%S_", localtime()) + model_name
+    os.makedirs(basename)
+    # copy configuration file
+    shutil.copyfile(config_file, os.path.join(basename, config_file))
+    config_file = os.path.join(basename, config_file)
 
-weight_file_path = os.path.join("./weights", basename + ".h5")
-history_file_path = os.path.join("./history", basename + ".pkl")
-tmp_history_file_path = os.path.join("./history", basename + "_tmp.pkl")
-lock_file  = basename + ".lock"
+weight_file_path = os.path.join(basename, "weights.h5")
+history_file_path = os.path.join(basename, "history.pkl")
+tmp_history_file_path = os.path.join(basename, "history_tmp.pkl")
+lock_file  = os.path.join(basename, "file.lock")
 
 # Arguments
 qsub_args = [
@@ -45,11 +46,8 @@ qsub_args = [
     "./run_job.sh",
     weight_file_path,
     tmp_history_file_path,
-    train_path,
-    valid_path,
-    noise_path,
     lock_file,
-    model_name
+    config_file
 ]
 
 def train():
@@ -59,8 +57,6 @@ def train():
     print("Model        : ", model_name)
     print("Weight path  : ", weight_file_path)
     print("History path : ", history_file_path)
-    print("Train path   : ", train_path)
-    print("Valid path   : ", valid_path)
 
     train_loss = []
     valid_loss = []

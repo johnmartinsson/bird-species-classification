@@ -6,7 +6,9 @@ import numpy as np
 # SEED = 1337
 
 import os
+import ast
 import pickle
+import configparser
 from time import localtime, strftime
 from optparse import OptionParser
 
@@ -29,9 +31,26 @@ class HistoryCollector(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.data.append(logs.get(self.name))
 
-def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_classes, nb_epoch,
-                nb_val_samples, samples_per_epoch, input_shape,
-                weight_file_path, history_file_path, first_epoch, lock_file):
+def train_model(config_file, weight_file_path, history_file_path, first_epoch, lock_file):
+
+    config_parser = configparser.ConfigParser()
+    config_parser.read(config_file)
+
+    # model
+    batch_size = int(config_parser['MODEL']['BatchSize'])
+    nb_classes = int(config_parser['MODEL']['NumberOfClasses'])
+    nb_epoch = int(config_parser['MODEL']['NumberOfEpochs'])
+    nb_iterations = int(config_parser['MODEL']['NumberOfIterations'])
+    nb_val_samples = int(config_parser['MODEL']['NumberOfValidationSamplesPerEpoch'])
+    samples_per_epoch = int(config_parser['MODEL']['NumberOfTrainingSamplesPerEpoch'])
+    input_shape = ast.literal_eval(config_parser['MODEL']['InputShape'])
+    model_name = config_parser['MODEL']['ModelName']
+    audio_mode = config_parser['MODEL']['InputDataMode']
+
+    # paths
+    noise_path = config_parser['PATHS']['NoiseDataDir']
+    train_path = config_parser['PATHS']['TrainingDataDir']
+    valid_path = config_parser['PATHS']['ValidationDataDir']
 
     img_rows, img_cols, nb_channels = input_shape
 
@@ -138,36 +157,17 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
     return weight_file_path
 
 parser = OptionParser()
-parser.add_option("--train_path", dest="train_path")
-parser.add_option("--valid_path", dest="valid_path")
-parser.add_option("--noise_path", dest="noise_path")
-parser.add_option("--weight_path", dest="weight_path")
+parser.add_option("--config_file", dest="config_file")
 parser.add_option("--history_path", dest="history_path")
+parser.add_option("--weight_path", dest="weight_path")
 parser.add_option("--first_epoch", dest="first_epoch")
 parser.add_option("--lock_file", dest="lock_file")
-parser.add_option("--model_name", dest="model_name")
 
 (options, args) = parser.parse_args()
-
-print("Options:", options)
-
-batch_size = 16
-nb_classes = 20
-nb_epoch   = 6
-nb_val_samples = 309
-samples_per_epoch = 2417
-input_shape = (256, 512, 1)
-audio_mode = 'spectrogram'
-
-noise_path = options.noise_path
-train_path = options.train_path
-valid_path = options.valid_path
+config_file = options.config_file
 history_file_path = options.history_path
 weight_file_path = options.weight_path
 first_epoch = options.first_epoch
 lock_file = options.lock_file
-model_name = options.model_name
 
-train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_classes, nb_epoch,
-            nb_val_samples, samples_per_epoch, input_shape, weight_file_path,
-            history_file_path, first_epoch, lock_file)
+train_model(config_file, weight_file_path, history_file_path, first_epoch, lock_file)
