@@ -13,7 +13,16 @@ from bird import preprocessing as pp
 from bird import signal_processing as sp
 from bird import data_augmentation as da
 
+def chunks(l, n):
+    chunk_size = int(np.ceil(len(l)/n))
+    """Yield n chunks from l."""
+    for i in range(0, len(l), chunk_size):
+        yield l[i:i + chunk_size]
+
 def plot_accuracy_by_trainingsamples(picke_file):
+    with open(picke_file, 'rb') as input:
+        stats = pickle.load(input)
+
     xs = zip(stats.keys(), stats.values())
     ys = [a for a in xs]
     xs = sorted(ys, key=lambda t: t[1]["training_samples"], reverse=True)
@@ -27,8 +36,18 @@ def plot_accuracy_by_trainingsamples(picke_file):
             accuracy = correct/(correct+incorrect)
             ys.append(accuracy)
         yss.append(ys)
+
+    xs = []
     for ys in yss:
-        print("accuracy: ", np.mean(ys))
+        xs.append(np.mean(ys))
+
+    plt.figure(1)
+    axes = plt.gca()
+    axes.set_ylim([0, 1])
+    plt.plot(xs, 'o-')
+    plt.ylabel('accuracy')
+    plt.xlabel('10% chunks of species')
+    plt.show()
 
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
@@ -51,10 +70,11 @@ def img_spectrogram_from_wave_file(filepath):
 def sprengel_binary_mask_from_wave_file(filepath):
     fs, x = utils.read_wave_file(filepath)
     Sxx = sp.wave_to_amplitude_spectrogram(x, fs)
+    Sxx_log = sp.wave_to_log_amplitude_spectrogram(x, fs)
 
     # plot spectrogram
-    plt.figure(1)
-    subplot_image(Sxx, 411, "Spectrogram")
+    fig = plt.figure(1)
+    subplot_image(Sxx_log, 411, "Spectrogram")
 
     Sxx = pp.normalize(Sxx)
     binary_image = pp.median_clipping(Sxx, 3.0)
@@ -68,13 +88,12 @@ def sprengel_binary_mask_from_wave_file(filepath):
     binary_image = morphology.binary_dilation(binary_image, selem=np.ones((4, 4)))
 
     subplot_image(binary_image + 0, 414, "Dilation")
-    fig = plt.figure(1)
 
     mask = np.array([np.max(col) for col in binary_image.T])
     mask = morphology.binary_dilation(mask, np.ones(4))
     mask = morphology.binary_dilation(mask, np.ones(4))
 
-    plot_vector(mask, "Mask")
+    # plot_vector(mask, "Mask")
 
     fig.set_size_inches(10, 12)
     plt.tight_layout()
@@ -209,17 +228,20 @@ def plot_history_to_image_file(pickle_path):
 
         fig = plt.figure(1)
         plt.subplot(211)
+        axes = plt.gca()
+        axes.set_ylim([0, 5])
         plt.ylabel("Loss")
-        plt.xlabel("Epoch")
         plt.plot(trainLoss, 'o-', label="train")
         plt.plot(validLoss, 'o-', label="valid")
         plt.legend(loc="upper_left")
         plt.subplot(212)
+        axes = plt.gca()
+        axes.set_ylim([0, 1])
         plt.ylabel("Accuracy")
         plt.xlabel("Epoch")
         plt.plot(trainAcc, 'o-', label="train")
         plt.plot(validAcc, 'o-', label="valid")
-        plt.plot(p(x), 'o-', label="trend")
+        # plt.plot(p(x), 'o-', label="trend")
         plt.legend(loc="upper_left")
 
         basename = utils.get_basename_without_ext(pickle_path)
@@ -240,8 +262,8 @@ def plot_spectrogram_from_wave_file(filename):
     plot_matrix(Sxx, "Amplitude Spectrogram")
 
 def subplot_image(Sxx, n_subplot, title):
-    #cmap = grayify_cmap('cubehelix_r')
-    cmap = plt.cm.get_cmap('jet')
+    cmap = grayify_cmap('cubehelix_r')
+    # cmap = plt.cm.get_cmap('jet')
     # cmap = grayify_cmap('jet')
     plt.subplot(n_subplot)
     plt.title(title)
