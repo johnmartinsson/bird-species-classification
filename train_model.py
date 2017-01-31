@@ -52,6 +52,17 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     train_path = config_parser['PATHS']['TrainingDataDir']
     valid_path = config_parser['PATHS']['ValidationDataDir']
 
+    # training
+    learning_rate = float(config_parser['TRAINING']['LearningRate'])
+    decay = float(config_parser['TRAINING']['Decay'])
+    momentum = float(config_parser['TRAINING']['Momentum'])
+    nesterov = config_parser['TRAINING']['Nesterov'] == 'True'
+    loss_function = config_parser['TRAINING']['LossFunction']
+    time_shift = config_parser['TRAINING']['TimeShiftAugmentation'] == 'True'
+    pitch_shift = config_parser['TRAINING']['PitchShiftAugmentation'] == 'True'
+    same_class_augmentation = config_parser['TRAINING']['SameClassAugmentation'] == 'True'
+    noise_augmentation = config_parser['TRAINING']['NoiseAugmentation'] == 'True'
+
     img_rows, img_cols, nb_channels = input_shape
 
     model = None
@@ -70,8 +81,9 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     else:
         raise ValueError("Can not find model ", model_name, ".")
 
-    sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='categorical_crossentropy',
+    sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum,
+              nesterov=nesterov)
+    model.compile(loss=loss_function,
                   optimizer=sgd,
                   metrics=['accuracy'])
 
@@ -96,10 +108,10 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     # train data generator
     train_datagen = SoundDataGenerator(
         rescale=1./255,
-        time_shift=True,
-        pitch_shift=True,
-        augment_with_same_class=True,
-        augment_with_noise=True)
+        time_shift=time_shift,
+        pitch_shift=pitch_shift,
+        augment_with_same_class=same_class_augmentation,
+        augment_with_noise=noise_augmentation)
 
     # validation data generator
     valid_datagen = SoundDataGenerator(
