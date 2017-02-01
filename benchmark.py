@@ -7,7 +7,7 @@ from bird import data_augmentation as da
 import bird.generators.sound as gs
 from bird import utils
 
-filename = "datasets/birdClef2016Subset/train/affinis/LIFECLEF2015_BIRDAMAZON_XC_WAV_RN14132_seg_0.wav"
+filename = "/disk/martinsson-spring17/datasets/birdClef2016Subset/train/affinis/LIFECLEF2015_BIRDAMAZON_XC_WAV_RN14132_seg_0.wav"
 (fs, x) = utils.read_wave_file(filename)
 Sxx = sp.wave_to_sample_spectrogram(x, fs)
 n_mask = pp.compute_signal_mask(Sxx)
@@ -15,9 +15,9 @@ n_mask_scaled = pp.reshape_binary_mask(n_mask, x.shape[0])
 Nxx = pp.normalize(Sxx)
 
 target_size = (256, 512)
-noise_files = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise.whole/*.wav")
-noise_files_small = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise/*.wav")
-class_dir = "datasets/birdClef2016Subset/train/affinis"
+noise_files = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise/*.wav")
+noise_files_small = glob.glob("/home/martinsson-spring17/data/noise/*.wav")
+class_dir = "/disk/martinsson-spring17/datasets/birdClef2016Subset/train/affinis"
 
 def compute_spectrogram():
     sp.wave_to_sample_spectrogram(x, fs)
@@ -49,10 +49,10 @@ def read_wave_file():
 def median_clipping():
     pp.median_clipping(Nxx, 3.0)
 
-def load_wav_as_narray():
-    gs.load_wav_as_narray(filename, target_size, noise_files, class_dir)
-def load_wav_as_narray_small():
-    gs.load_wav_as_narray(filename, target_size, noise_files_small, class_dir)
+def load_wav_as_spectrogram():
+    gs.load_wav_as_spectrogram(filename, target_size, noise_files, class_dir)
+def load_wav_as_spectrogram_small():
+    gs.load_wav_as_spectrogram(filename, target_size, noise_files_small, class_dir)
 
 def same_class_augmentation():
     da.same_class_augmentation(x, class_dir)
@@ -68,13 +68,13 @@ def read_random_noise_file_small():
     x = x * 2
 
 def noise_augmentation():
-    da.noise_augmentation(x, noise_files)
+    da.noise_augmentation(x, noise_files_small)
 
 def choose_noise_segments():
     nb_noise_segments = 3
     aug_noise_files = []
     for i in range(nb_noise_segments):
-        aug_noise_files.append(random.choice(noise_files))
+        aug_noise_files.append(random.choice(noise_files_small))
     f1 = aug_noise_files[0] + "h"
     f2 = aug_noise_files[1] + "j"
     f3 = aug_noise_files[2] + "k"
@@ -93,7 +93,7 @@ def compute_noise_augmented():
     aug_noise_files = []
     wave = x
     for i in range(nb_noise_segments):
-        aug_noise_files.append(random.choice(noise_files))
+        aug_noise_files.append(random.choice(noise_files_small))
     dampening_factor = 0.4
     for aug_noise_path in aug_noise_files:
         (fs, aug_noise) = utils.read_wave_file(aug_noise_path)
@@ -111,8 +111,8 @@ if __name__=='__main__':
     print("reshape_binary_mask():", timeit.timeit("reshape_binary_mask()", setup="from __main__ import reshape_binary_mask", number=number))
     print("extract_masked_part_from_wave():", timeit.timeit("extract_masked_part_from_wave()", setup="from __main__ import extract_masked_part_from_wave", number=number))
     print("preprocess_wave():", timeit.timeit("preprocess_wave()", setup="from __main__ import preprocess_wave", number=number))
-    print("load_wav_as_narray():", timeit.timeit("load_wav_as_narray()", setup="from __main__ import load_wav_as_narray", number=number))
-    print("load_wav_as_narray_small():", timeit.timeit("load_wav_as_narray_small()", setup="from __main__ import load_wav_as_narray_small", number=number))
+    print("load_wav_as_spectrogram():", timeit.timeit("load_wav_as_spectrogram()", setup="from __main__ import load_wav_as_spectrogram", number=number))
+    print("load_wav_as_spectrogram_small():", timeit.timeit("load_wav_as_spectrogram_small()", setup="from __main__ import load_wav_as_spectrogram_small", number=number))
     print("read_random_noise_file():", timeit.timeit("read_random_noise_file()", setup="from __main__ import read_random_noise_file", number=number))
     print("read_random_noise_file_small():", timeit.timeit("read_random_noise_file_small()", setup="from __main__ import read_random_noise_file_small", number=number))
     print("same_class_augmentation():", timeit.timeit("same_class_augmentation()", setup="from __main__ import same_class_augmentation", number=number))

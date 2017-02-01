@@ -41,13 +41,79 @@ def plot_accuracy_by_trainingsamples(picke_file):
     for ys in yss:
         xs.append(np.mean(ys))
 
-    plt.figure(1)
+    fig = plt.figure(1)
     axes = plt.gca()
     axes.set_ylim([0, 1])
     plt.plot(xs, 'o-')
     plt.ylabel('accuracy')
     plt.xlabel('10% chunks of species')
-    plt.show()
+    fig.savefig("test.png")
+
+    fig.clf()
+    plt.close(fig)
+
+def plot_segmented_and_sorted_by_accuracy(pickle_file):
+    with open(pickle_file, 'rb') as input:
+        stats = pickle.load(input)
+
+    def accuracy(stat):
+        return stat[1]["correct"]/(stat[1]["correct"]+stat[1]["incorrect"])
+
+    xs = zip(stats.keys(), stats.values())
+    ys = [a for a in xs]
+    xs = sorted(ys, key=lambda t: accuracy(t), reverse=True)
+    xss = chunks(xs, 20)
+
+    yss = []
+    for xs in xss:
+        ys = []
+        for stat in xs:
+            ys.append(accuracy(stat))
+        yss.append(ys)
+    xs = []
+    for ys in yss:
+        xs.append(np.mean(ys))
+
+    fig = plt.figure(1)
+    axes = plt.gca()
+    axes.set_ylim([0, 1])
+    plt.plot(xs, 'o-')
+    plt.ylabel('accuracy')
+    plt.xlabel('5% chunks of species')
+    fig.savefig("test.png")
+
+    fig.clf()
+    plt.close(fig)
+
+def create_top_bot_table(pickle_file):
+    with open(pickle_file, 'rb') as input:
+        stats = pickle.load(input)
+
+    def accuracy(stat):
+        return stat[1]["correct"]/(stat[1]["correct"]+stat[1]["incorrect"])
+
+    xs = zip(stats.keys(), stats.values())
+    ys = [a for a in xs]
+    xs = sorted(ys, key=lambda t: accuracy(t), reverse=True)
+    print("total samples", sum([stat[1]["training_samples"] for stat in xs]))
+    top_25 = xs[:25]
+    bot_25 = xs[len(xs)-25:]
+
+    print("TOP 25")
+    for stat in top_25:
+        print(stat)
+        # print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
+              # stat[1]["training_samples"])
+    print("samples", sum([stat[1]["training_samples"] for stat in top_25]))
+    print("")
+
+    print("BOT 25")
+    for stat in bot_25:
+        print(stat)
+        # print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
+              # stat[1]["training_samples"])
+    print("samples", sum([stat[1]["training_samples"] for stat in bot_25]))
+
 
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
