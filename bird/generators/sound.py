@@ -474,7 +474,7 @@ class DirectoryIterator(Iterator):
                 self.image_shape = self.target_size + (4,)
             else:
                 self.image_shape = (4,) + self.target_size
-        elif self.audio_mode == 'mfcc' or self.audio_mode == 'spectrogram':
+        elif self.audio_mode in {'mfcc', 'spectrogram', 'tempogram'}:
             if self.dim_ordering == 'tf':
                 self.image_shape = self.target_size + (1,)
             else:
