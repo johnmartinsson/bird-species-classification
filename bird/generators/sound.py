@@ -464,9 +464,9 @@ class DirectoryIterator(Iterator):
         print("Loaded ", len(noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
-        if audio_mode not in {'spectrogram', 'mfcc', 'mfcc_delta'}:
+        if audio_mode not in {'spectrogram', 'tempogram', 'mfcc', 'mfcc_delta'}:
             raise ValueError('Invalid audio mode:', audio_mode,
-                             '; expected "spectrogram", "mfcc" or "mfcc_delta".')
+                             '; expected "spectrogram", "tempogram", "mfcc" or "mfcc_delta".')
         self.audio_mode = audio_mode
         self.dim_ordering = dim_ordering
         if self.audio_mode == 'mfcc_delta':
