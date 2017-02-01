@@ -44,6 +44,7 @@ def evaluate(model, data_filepath):
         nb_train = len(loader.group_segments(glob.glob(os.path.join(train, species, "*.wav"))))
         stats[species]["validation_samples"] = nb_valid
         stats[species]["training_samples"] = nb_train
+        stats[species]["confusion"] = {}
 
     top_1 = 0
     top_2 = 0
@@ -70,6 +71,11 @@ def evaluate(model, data_filepath):
             stats[index_to_species[y_true_cat]]["correct"] += 1
         else:
             stats[index_to_species[y_true_cat]]["incorrect"] += 1
+
+        if not index_to_species[y_pred] in stats[index_to_species[y_true_cat]]["confusion"]:
+            stats[index_to_species[y_true_cat]]["confusion"][index_to_species[y_pred]] = 1
+        else:
+            stats[index_to_species[y_true_cat]]["confusion"][index_to_species[y_pred]] += 1
 
         # compute average precision score
         average_precision_score = metrics.average_precision_score(y_true, y_score)
@@ -105,13 +111,13 @@ def evaluate(model, data_filepath):
     with open("test.pkl", "wb") as output:
         pickle.dump(stats, output, pickle.HIGHEST_PROTOCOL)
 
-nb_classes = 20
+nb_classes = 809
 input_shape = (256, 512, 1)
 batch_size=32
 
 if model_name == "cuberun":
     model = CubeRun(nb_classes, input_shape)
-elif model_name == "resnet":
+elif model_name == "resnet_18":
     model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
 model.load_weights(weight_path)
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
