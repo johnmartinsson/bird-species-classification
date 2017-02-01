@@ -122,7 +122,7 @@ def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
     mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
     mfcc_delta_19 = librosa.feature.delta(mfcc, width=19, order=1)
 
-    if target_size:	
+    if target_size:
         mfcc = scipy.misc.imresize(mfcc, target_size)
         mfcc_delta_3 = scipy.misc.imresize(mfcc_delta_3, target_size)
         mfcc_delta_11 = scipy.misc.imresize(mfcc_delta_11, target_size)
@@ -154,6 +154,27 @@ def load_wav_as_spectrogram(fname, target_size=None, noise_files=None,
     spectrogram = spectrogram.reshape((spectrogram.shape[0],
                                        spectrogram.shape[1], 1))
     return spectrogram
+
+def load_wav_as_tempogram(fname, target_size=None, noise_files=None,
+                       augment_with_noise=False, class_dir=None):
+    (fs, signal) = utils.read_wave_file(fname)
+
+    if class_dir:
+        signal = da.same_class_augmentation(signal, class_dir)
+
+    if augment_with_noise:
+        signal = da.noise_augmentation(signal, noise_files)
+
+    tempogram = sp.wave_to_tempogram(signal, fs)
+
+    if target_size:
+        tempogram = scipy.misc.imresize(tempogram, target_size)
+
+    tempogram = tempogram.reshape((tempogram.shape[0],
+                                       tempogram.shape[1], 1))
+    return tempogram
+
+
 
 class SoundDataGenerator(object):
     '''Generate minibatches with
@@ -526,6 +547,12 @@ class DirectoryIterator(Iterator):
 
             if self.audio_mode == 'spectrogram':
                 x = load_wav_as_spectrogram(os.path.join(self.directory, fname),
+                                       target_size=self.target_size,
+                                       noise_files=self.noise_files,
+                                       augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
+
+            elif self.audio_mode == 'tempogram':
+                x = load_wav_as_tempogram(os.path.join(self.directory, fname),
                                        target_size=self.target_size,
                                        noise_files=self.noise_files,
                                        augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
