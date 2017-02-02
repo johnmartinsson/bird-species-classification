@@ -61,6 +61,11 @@ def load_wav_as_mfcc_delta():
 def load_wav_as_mfcc_delta_small():
     gs.load_wav_as_mfcc_delta(filename, target_size, noise_files_small, class_dir)
 
+def load_wav_as_mfcc():
+    gs.load_wav_as_mfcc(filename, target_size, noise_files, class_dir)
+def load_wav_as_mfcc_small():
+    gs.load_wav_as_mfcc(filename, target_size, noise_files_small, class_dir)
+
 def same_class_augmentation():
     da.same_class_augmentation(x, class_dir)
 
@@ -123,6 +128,8 @@ if __name__=='__main__':
     print("load_wav_as_spectrogram_small():", timeit.timeit("load_wav_as_spectrogram_small()", setup="from __main__ import load_wav_as_spectrogram_small", number=number))
     print("load_wav_as_mfcc_delta():", timeit.timeit("load_wav_as_mfcc_delta()", setup="from __main__ import load_wav_as_mfcc_delta", number=number))
     print("load_wav_as_mfcc_delta_small():", timeit.timeit("load_wav_as_mfcc_delta_small()", setup="from __main__ import load_wav_as_mfcc_delta_small", number=number))
+    print("load_wav_as_mfcc():", timeit.timeit("load_wav_as_mfcc()", setup="from __main__ import load_wav_as_mfcc", number=number))
+    print("load_wav_as_mfcc_small():", timeit.timeit("load_wav_as_mfcc_small()", setup="from __main__ import load_wav_as_mfcc_small", number=number))
     print("read_random_noise_file():", timeit.timeit("read_random_noise_file()", setup="from __main__ import read_random_noise_file", number=number))
     print("read_random_noise_file_small():", timeit.timeit("read_random_noise_file_small()", setup="from __main__ import read_random_noise_file_small", number=number))
     print("same_class_augmentation():", timeit.timeit("same_class_augmentation()", setup="from __main__ import same_class_augmentation", number=number))
