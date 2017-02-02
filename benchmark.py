@@ -20,7 +20,7 @@ noise_files_small = glob.glob("/home/martinsson-spring17/data/noise/*.wav")
 class_dir = "/disk/martinsson-spring17/datasets/birdClef2016Subset/train/affinis"
 
 def compute_tempogram():
-    sp.wave_to_tempogran(x, fs)
+    sp.wave_to_tempogram(x, fs)
 def compute_spectrogram():
     sp.wave_to_sample_spectrogram(x, fs)
 
