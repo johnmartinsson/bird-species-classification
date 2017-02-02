@@ -19,6 +19,8 @@ noise_files = glob.glob("/disk/martinsson-spring17/birdClef2016Whole/noise/*.wav
 noise_files_small = glob.glob("/home/martinsson-spring17/data/noise/*.wav")
 class_dir = "/disk/martinsson-spring17/datasets/birdClef2016Subset/train/affinis"
 
+def compute_tempogram():
+    sp.wave_to_tempogran(x, fs)
 def compute_spectrogram():
     sp.wave_to_sample_spectrogram(x, fs)
 
@@ -53,6 +55,11 @@ def load_wav_as_spectrogram():
     gs.load_wav_as_spectrogram(filename, target_size, noise_files, class_dir)
 def load_wav_as_spectrogram_small():
     gs.load_wav_as_spectrogram(filename, target_size, noise_files_small, class_dir)
+
+def load_wav_as_mfcc_delta():
+    gs.load_wav_as_mfcc_delta(filename, target_size, noise_files, class_dir)
+def load_wav_as_mfcc_delta_small():
+    gs.load_wav_as_mfcc_delta(filename, target_size, noise_files_small, class_dir)
 
 def same_class_augmentation():
     da.same_class_augmentation(x, class_dir)
@@ -104,6 +111,7 @@ if __name__=='__main__':
     import timeit
     number = 100
     print("compute_spectrogram():", timeit.timeit("compute_spectrogram()", setup="from __main__ import compute_spectrogram", number=number))
+    print("compute_tempogram():", timeit.timeit("compute_tempogram()", setup="from __main__ import compute_tempogram", number=number))
     print("read_wave_file():", timeit.timeit("read_wave_file()", setup="from __main__ import read_wave_file", number=number))
     print("median_clipping():", timeit.timeit("median_clipping()", setup="from __main__ import median_clipping", number=number))
     print("compute_noise_mask():", timeit.timeit("compute_noise_mask()", setup="from __main__ import compute_noise_mask", number=number))
@@ -113,6 +121,8 @@ if __name__=='__main__':
     print("preprocess_wave():", timeit.timeit("preprocess_wave()", setup="from __main__ import preprocess_wave", number=number))
     print("load_wav_as_spectrogram():", timeit.timeit("load_wav_as_spectrogram()", setup="from __main__ import load_wav_as_spectrogram", number=number))
     print("load_wav_as_spectrogram_small():", timeit.timeit("load_wav_as_spectrogram_small()", setup="from __main__ import load_wav_as_spectrogram_small", number=number))
+    print("load_wav_as_mfcc_delta():", timeit.timeit("load_wav_as_mfcc_delta()", setup="from __main__ import load_wav_as_mfcc_delta", number=number))
+    print("load_wav_as_mfcc_delta_small():", timeit.timeit("load_wav_as_mfcc_delta_small()", setup="from __main__ import load_wav_as_mfcc_delta_small", number=number))
     print("read_random_noise_file():", timeit.timeit("read_random_noise_file()", setup="from __main__ import read_random_noise_file", number=number))
     print("read_random_noise_file_small():", timeit.timeit("read_random_noise_file_small()", setup="from __main__ import read_random_noise_file_small", number=number))
     print("same_class_augmentation():", timeit.timeit("same_class_augmentation()", setup="from __main__ import same_class_augmentation", number=number))
