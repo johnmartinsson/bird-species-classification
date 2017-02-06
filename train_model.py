@@ -53,6 +53,7 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     valid_path = config_parser['PATHS']['ValidationDataDir']
 
     # training
+    optimizer = config_parser['TRAINING']['Optimizer']
     learning_rate = float(config_parser['TRAINING']['LearningRate'])
     decay = float(config_parser['TRAINING']['Decay'])
     momentum = float(config_parser['TRAINING']['Momentum'])
@@ -81,11 +82,16 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     else:
         raise ValueError("Can not find model ", model_name, ".")
 
-    sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum,
-              nesterov=nesterov)
-    model.compile(loss=loss_function,
-                  optimizer=sgd,
-                  metrics=['accuracy'])
+    if optimizer == 'sgd':
+        sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum,
+                  nesterov=nesterov)
+        model.compile(loss=loss_function,
+                      optimizer=sgd,
+                      metrics=['accuracy'])
+    else:
+        model.compile(loss=loss_function,
+                      optimizer=optimizer,
+                      metrics=['accuracy'])
 
     if first_epoch=='False':
         # load weights
