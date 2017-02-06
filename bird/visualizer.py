@@ -12,6 +12,7 @@ from bird import utils
 from bird import preprocessing as pp
 from bird import signal_processing as sp
 from bird import data_augmentation as da
+from bird import analysis as a
 
 def chunks(l, n):
     chunk_size = int(np.ceil(len(l)/n))
@@ -19,7 +20,7 @@ def chunks(l, n):
     for i in range(0, len(l), chunk_size):
         yield l[i:i + chunk_size]
 
-def plot_accuracy_by_trainingsamples(picke_file):
+def plotaccuracy_by_trainingsamples(picke_file):
     with open(picke_file, 'rb') as input:
         stats = pickle.load(input)
 
@@ -52,7 +53,41 @@ def plot_accuracy_by_trainingsamples(picke_file):
     fig.clf()
     plt.close(fig)
 
-def plot_segmented_and_sorted_by_accuracy(pickle_file):
+def plotaccuracy_by_validationsamples(picke_file):
+    with open(picke_file, 'rb') as input:
+        stats = pickle.load(input)
+
+    xs = zip(stats.keys(), stats.values())
+    ys = [a for a in xs]
+    xs = sorted(ys, key=lambda t: t[1]["validation_samples"], reverse=True)
+    xss = chunks(xs, 10)
+    yss = []
+    for xs in xss:
+        ys = []
+        for (species, x) in xs:
+            correct = x["correct"]
+            incorrect = x["incorrect"]
+            accuracy = correct/(correct+incorrect)
+            ys.append(accuracy)
+        yss.append(ys)
+
+    xs = []
+    for ys in yss:
+        xs.append(np.mean(ys))
+
+    fig = plt.figure(1)
+    axes = plt.gca()
+    axes.set_ylim([0, 1])
+    plt.plot(xs, 'o-')
+    plt.ylabel('accuracy')
+    plt.xlabel('10% chunks of species')
+    fig.savefig("test.png")
+
+    fig.clf()
+    plt.close(fig)
+
+
+def plot_sound_class_sorted_by_accuracy(pickle_file):
     with open(pickle_file, 'rb') as input:
         stats = pickle.load(input)
 
@@ -61,8 +96,9 @@ def plot_segmented_and_sorted_by_accuracy(pickle_file):
 
     xs = zip(stats.keys(), stats.values())
     ys = [a for a in xs]
-    xs = sorted(ys, key=lambda t: accuracy(t), reverse=True)
-    xss = chunks(xs, 20)
+    xs_sorted = sorted(ys, key=lambda t: accuracy(t), reverse=True)
+    # xs = [accuracy(t) for t in xs_sorted]
+    xss = chunks(xs_sorted, 20)
 
     yss = []
     for xs in xss:
@@ -79,13 +115,13 @@ def plot_segmented_and_sorted_by_accuracy(pickle_file):
     axes.set_ylim([0, 1])
     plt.plot(xs, 'o-')
     plt.ylabel('accuracy')
-    plt.xlabel('5% chunks of species')
-    fig.savefig("test.png")
+    plt.xlabel('sound class sorted by accuracy (descending)')
+    fig.savefig("sound_class_sorted_by_accuracy.png")
 
     fig.clf()
     plt.close(fig)
 
-def create_top_bot_table(pickle_file):
+def create_top_bot_table(pickle_file, size):
     with open(pickle_file, 'rb') as input:
         stats = pickle.load(input)
 
@@ -96,24 +132,62 @@ def create_top_bot_table(pickle_file):
     ys = [a for a in xs]
     xs = sorted(ys, key=lambda t: accuracy(t), reverse=True)
     print("total samples", sum([stat[1]["training_samples"] for stat in xs]))
-    top_25 = xs[:25]
-    bot_25 = xs[len(xs)-25:]
+    top = xs[:size]
+    bot = xs[len(xs)-size:]
 
-    print("TOP 25")
-    for stat in top_25:
-        print(stat)
-        # print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
-              # stat[1]["training_samples"])
-    print("samples", sum([stat[1]["training_samples"] for stat in top_25]))
+    print("TOP " + str(size))
+    for stat in top:
+        # print(stat)
+        print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
+              stat[1]["training_samples"])
+    print("samples", sum([stat[1]["training_samples"] for stat in top]))
     print("")
 
-    print("BOT 25")
-    for stat in bot_25:
-        print(stat)
-        # print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
-              # stat[1]["training_samples"])
-    print("samples", sum([stat[1]["training_samples"] for stat in bot_25]))
+    print("BOT " + str(size))
+    for stat in bot:
+        # print(stat)
+        print(stat[0], "accuracy:", accuracy(stat), "training_samples:",
+              stat[1]["training_samples"])
+    print("samples", sum([stat[1]["training_samples"] for stat in bot]))
 
+    return [stat[0] for stat in top], [stat[0] for stat in bot]
+
+def plot_accuracy_and_energy(pickle_file, directory):
+    accuracies = []
+    valid_energies = []
+    train_energies = []
+    with open(pickle_file, 'rb') as input:
+        stats = pickle.load(input)
+
+    def accuracy(stat):
+        return stat[1]["correct"]/(stat[1]["correct"]+stat[1]["incorrect"])
+
+    key_value_tuples = zip(stats.keys(), stats.values())
+    key_value_tuples_sorted = sorted(key_value_tuples, key=lambda t: accuracy(t), reverse=True)
+
+    for (species, values) in key_value_tuples_sorted:
+        train_class_path = os.path.join(directory, "train", species)
+        valid_class_path = os.path.join(directory, "valid", species)
+        train_energy = a.compute_class_energy(train_class_path)
+        valid_energy = a.compute_class_energy(valid_class_path)
+        accuracy = values["correct"]/(values["correct"]+values["incorrect"])
+        accuracies.append(accuracy)
+        valid_energies.append(valid_energy/values["validation_samples"])
+        train_energies.append(train_energy/values["training_samples"])
+
+    fig, ax1 = plt.subplots()
+    ax1.plot(accuracies, 'ro-')
+    ax1.set_xlabel('sound class sorted by accuracy (descending)')
+    ax1.set_ylabel('accuracy')
+
+    ax2 = ax1.twinx()
+    ax2.plot(valid_energies, 'bo-')
+    ax2.plot(train_energies, 'go-')
+    ax2.set_ylabel('energy')
+    fig.savefig("accuracy_and_energy.png")
+
+    fig.clf()
+    plt.close(fig)
 
 def compute_and_save_spectrograms_for_files(files):
     progress = tqdm.tqdm(range(len(files)))
