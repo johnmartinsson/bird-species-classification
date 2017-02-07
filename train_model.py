@@ -105,7 +105,8 @@ def train_model(config_file, weight_file_path, history_file_path, first_epoch, l
     validLossHistory = HistoryCollector('val_loss')
     trainAccHistory = HistoryCollector('acc')
     validAccHistory = HistoryCollector('val_acc')
-    checkpoint = keras.callbacks.ModelCheckpoint(weight_file_path,
+    best_weight_file_path = os.path.join(os.path.dirname(weight_file_path), "best_weights.h5")
+    checkpoint = keras.callbacks.ModelCheckpoint(best_weight_file_path,
                                                 monitor='val_acc', verbose=0,
                                                 save_best_only=True,
                                                 save_weights_only=True,
