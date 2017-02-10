@@ -6,6 +6,7 @@ import sys
 import subprocess
 import wave
 import gzip
+import shutil
 
 from scipy import signal
 from scipy import fft
@@ -80,15 +81,15 @@ def copy_subset(root_dir, classes, subset_dir):
     # create directories
     if not os.path.exists(subset_dir):
         print("os.makedirs("+subset_dir+")")
-        # os.makedirs(subset_dir)
+        os.makedirs(subset_dir)
     subset_dir_valid = os.path.join(subset_dir, "valid")
     subset_dir_train = os.path.join(subset_dir, "train")
     if not os.path.exists(subset_dir_valid):
         print("os.makedirs("+subset_dir_valid+")")
-        # os.makedirs(subset_dir_valid)
+        os.makedirs(subset_dir_valid)
     if not os.path.exists(subset_dir_train):
         print("os.makedirs("+subset_dir_train+")")
-        # os.makedirs(subset_dir_train)
+        os.makedirs(subset_dir_train)
 
     for c in classes:
         valid_source_dir = os.path.join(root_dir, "valid", c)
@@ -97,4 +98,6 @@ def copy_subset(root_dir, classes, subset_dir):
         train_dest_dir = os.path.join(subset_dir_train, c)
 
         print("shutil.copytree(" + valid_source_dir + "," + valid_dest_dir + ")")
+        shutil.copytree(valid_source_dir, valid_dest_dir)
         print("shutil.copytree(" + train_source_dir + "," + train_dest_dir + ")")
+        shutil.copytree(train_source_dir, train_dest_dir)
