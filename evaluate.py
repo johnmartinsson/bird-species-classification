@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+from keras.applications.resnet50 import ResNet50
 from functools import reduce
 from bird.models.cuberun import CubeRun
 from bird.models.resnet import ResNetBuilder
@@ -8,20 +9,27 @@ from bird import loader
 from sklearn import metrics
 import os
 import glob
+import configparser
+import ast
 from optparse import OptionParser
 
 import tqdm
 
 parser = OptionParser()
-parser.add_option("--root_path", dest="root_path")
-parser.add_option("--model_name", dest="model_name")
-parser.add_option("--weight_path", dest="weight_path")
+parser.add_option("--experiment_path", dest="experiment_path")
 (options, args) = parser.parse_args()
 
-validation = os.path.join(options.root_path, "valid")
-train = os.path.join(options.root_path, "train")
-model_name = options.model_name
-weight_path = options.weight_path
+config_parser = configparser.ConfigParser()
+config_parser.read(os.path.join(options.experiment_path, "conf.ini"))
+
+validation = config_parser['PATHS']['ValidationDataDir']
+train = config_parser['PATHS']['TrainingDataDir']
+
+model_name = config_parser['MODEL']['ModelName']
+weight_path = os.path.join(options.experiment_path, "weights.h5")
+nb_classes = int(config_parser['MODEL']['NumberOfClasses'])
+input_shape = ast.literal_eval(config_parser['MODEL']['InputShape'])
+batch_size = int(config_parser['MODEL']['BatchSize'])
 
 def evaluate(model, data_filepath):
     stats = {}
@@ -108,17 +116,15 @@ def evaluate(model, data_filepath):
     print("Area Under Curve: ", np.mean(roc_auc_scores))
     print("Total predictions: ", len(X_tests))
 
-    with open("test.pkl", "wb") as output:
+    with open(os.path.join(options.experiment_path, "evaluate.pkl"), "wb") as output:
         pickle.dump(stats, output, pickle.HIGHEST_PROTOCOL)
-
-nb_classes = 809
-input_shape = (256, 512, 1)
-batch_size=32
 
 if model_name == "cuberun":
     model = CubeRun(nb_classes, input_shape)
 elif model_name == "resnet_18":
     model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+elif model_name == "resnet_50":
+    model = ResNet50(True, None, None, input_shape, nb_classes)
 model.load_weights(weight_path)
 model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 evaluate(model, validation)
