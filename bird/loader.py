@@ -27,6 +27,7 @@ def load_test_data_birdclef(directory, target_size):
 
     X_test = []
     Y_test = []
+    training_files = []
     for subdir in classes:
         subpath = os.path.join(directory, subdir)
         # load sound data
@@ -34,12 +35,14 @@ def load_test_data_birdclef(directory, target_size):
         # print(subdir+": ", len(class_segments))
         samples = group_segments(class_segments)
         for sample in samples:
+            training_files.append(sample)
             data = load_segments(sample, target_size)
             X_test.append(data)
             y = np.zeros(nb_classes)
             y[class_indices[subdir]] = 1.0
             Y_test.append(y)
-    return np.asarray(X_test), np.asarray(Y_test), index_to_species
+    return np.asarray(X_test), np.asarray(Y_test), training_files
+
 def build_class_index(directory):
     classes = []
     for subdir in sorted(os.listdir(directory)):

@@ -45,7 +45,7 @@ def main():
     model.load_weights(weight_path)
     model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 
-    (X_tests, Y_tests, index_to_species) = loader.load_test_data_birdclef(validation_dir,
+    (X_tests, Y_tests, training_files) = loader.load_test_data_birdclef(validation_dir,
                                                                           input_shape)
     y_scores = []
     y_trues = Y_tests
@@ -57,6 +57,7 @@ def main():
     with open(os.path.join(options.experiment_path, "predictions.pkl"), "wb") as output:
         pickle.dump(y_trues, output, pickle.HIGHEST_PROTOCOL)
         pickle.dump(y_scores, output, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(training_files, output, pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
     main()
