@@ -6,8 +6,8 @@ from bird.models.cuberun import CubeRun
 from bird.models.resnet import ResNetBuilder
 from bird import utils
 from bird import loader
-# from sklearn import metrics
-import sklearn
+import data_analysis
+from sklearn import metrics
 import os
 import glob
 import configparser
@@ -55,7 +55,7 @@ def mean_average_precision(y_trues, y_scores):
     """
     aps = []
     for y_t, y_s in zip(y_trues, y_scores):
-        ap = sklearn.metrics.average_precision_score(y_t, y_s)
+        ap = metrics.average_precision_score(y_t, y_s)
         aps.append(ap)
     return np.mean(np.array(aps))
 
@@ -66,17 +66,81 @@ def area_under_roc_curve(y_trues, y_scores):
 
     map      : float (AUROC)
     """
-    auroc = sklearn.metrics.roc_auc_score(y_trues, y_scores)
+    auroc = metrics.roc_auc_score(y_trues, y_scores)
     return auroc
+
+def build_file_to_elevation(xml_roots):
+    file_to_elevation = {}
+
+    for r in xml_roots:
+        file_name = r.find("FileName").text
+        elevation = r.find("Elevation").text
+        if data_analysis.represents_int(elevation):
+            file_to_elevation[file_name] = int(elevation)
+        else:
+            file_to_elevation[file_name] = -1
+
+    return file_to_elevation
+
+def compute_elevation_scores(training_segments):
+    xml_dir = "./datasets/birdClef2016/xml/"
+    train_dir = "./datasets/birdClef2016Whole1/train/"
+
+    xml_roots = data_analysis.load_xml_roots(xml_dir)
+    elevation_to_probability = data_analysis.build_elevation_distributions(xml_roots, train_dir)
+    training_files = [data_analysis.segments_to_training_files(segs) for segs in
+                      training_segments]
+
+    training_files = [item for sublist in training_files for item in sublist]
+
+    nb_classes = len(elevation_to_probability.items())
+
+    file_to_elevation = build_file_to_elevation(xml_roots)
+
+    print("computing elevation scores ...")
+    progress = tqdm.tqdm(range(len(training_files)))
+    elevation_scores = []
+    for tf, p in zip(training_files, progress):
+        elevation_score = np.zeros(nb_classes)
+        elevation = file_to_elevation[tf]
+        for i in range(nb_classes):
+            if elevation == -1:
+                elevation_score[i] = 1/nb_classes
+            else:
+                f = elevation_to_probability[i]
+                elevation_score[i] = f(elevation)
+        elevation_scores.append(elevation_score)
+
+    return np.array(elevation_scores)
+
+def combine(e_s, y_s):
+    c = e_s * y_s
+    c = c / np.sum(c)
+    return c
 
 def evaluate(experiment_path):
     pickle_path = os.path.join(experiment_path, "predictions.pkl")
     with open(pickle_path, 'rb') as input:
         y_trues = pickle.load(input)
         y_scores = pickle.load(input)
+        training_segments = pickle.load(input)
+
+    elevation_scores = compute_elevation_scores(training_segments)
+
+    ## Combine the scores using Bayes Thm.
+    normalize = np.array([np.sum(y_s * e_s) for y_s, e_s in zip(y_scores,
+                                                                elevation_scores)])
+    y_scores = y_scores * elevation_scores / normalize[:, None]
 
     map_score = mean_average_precision(y_trues, y_scores)
     auroc_score = area_under_roc_curve(y_trues, y_scores)
+
+    # coverage error
+    coverage_error = metrics.coverage_error(y_trues, y_scores)
+    # label ranking average precision
+    lrap = metrics.label_ranking_average_precision_score(y_trues, y_scores)
+    # ranking loss
+    ranking_loss = metrics.label_ranking_loss(y_trues, y_scores)
 
     print("")
     print("- Top 1:", top_n(y_trues, y_scores, 1))
@@ -86,8 +150,30 @@ def evaluate(experiment_path):
     print("- Top 5:", top_n(y_trues, y_scores, 5))
     print("")
     print("Mean Average Precision: ", map_score)
-    print("Area Under Curve: ", auroc_score)
+    print("Area Under ROC Curve: ", auroc_score)
+    print("Coverage Error: ", coverage_error)
+    print("Label Ranking Average Precision: ", lrap)
+    print("Ranking Loss: ", ranking_loss)
     print("Total predictions: ", len(y_scores))
+
+    return {
+        "map":map_score,
+        "auroc":auroc_score,
+        "coverage_error":coverage_error,
+        "lrap":lrap,
+        "ranking_loss": ranking_loss
+    }, y_scores
+
+def summary(evaluations):
+    def f(key, evaluations):
+        values = [e[key] for e in evaluations]
+        return np.mean(values), np.std(values)
+
+    results = {}
+    for key in evaluations[0]:
+        results[key] = f(key, evaluations)
+
+    return results
 
 def main():
     parser = OptionParser()
