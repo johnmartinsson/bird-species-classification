@@ -25,12 +25,20 @@ $ source venv/bin/activate
 # Usage Instriction
 Note that these instructions can __not__ be followed right now, but they are rather here as a guidline of an interface that could be implemented.
 
+## Preprocess
+```bash
+$ tar xf BirdCLEFTestSet.tar.gz
+$ cd test/wav
+$ # Resample to 22050 Hz
+$ for i in *; do sox $i -r 22050 tmp.wav; mv tmp.wav $i; done
+```
+
 ## Train
 The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
 
-## Test
+## Run Predictions
 
-## Predict
+## Evaluate
 
 # Libraries
 The following libraries are used in this method:
