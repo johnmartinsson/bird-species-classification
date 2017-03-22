@@ -97,7 +97,7 @@ def load_wav_as_mfcc(fname, target_size=None, noise_files=None,
     if augment_with_noise:
         signal = da.noise_augmentation(signal, noise_files)
 
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=32)
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=target_size[0])
 
     if target_size:
         mfcc= scipy.misc.imresize(mfcc, target_size)
@@ -117,7 +117,7 @@ def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
     if augment_with_noise:
         signal = da.noise_augmentation(signal, noise_files)
 
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=32)
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=target_size[0])
     mfcc_delta_3 = librosa.feature.delta(mfcc, width=3, order=1)
     mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
     mfcc_delta_19 = librosa.feature.delta(mfcc, width=19, order=1)

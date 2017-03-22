@@ -35,6 +35,7 @@ def main():
     weight_path = os.path.join(options.experiment_path, "weights.h5")
     nb_classes = int(config_parser['MODEL']['NumberOfClasses'])
     input_shape = ast.literal_eval(config_parser['MODEL']['InputShape'])
+    input_data_mode = config_parser['MODEL']['InputDataMode']
     batch_size = int(config_parser['MODEL']['BatchSize'])
 
     if model_name == "cuberun":
@@ -46,7 +47,7 @@ def main():
     model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 
     (X_tests, Y_tests, training_files) = loader.load_test_data_birdclef(validation_dir,
-                                                                          input_shape)
+                                                                          input_shape, input_data_mode)
     y_scores = []
     y_trues = Y_tests
     progress = tqdm.tqdm(range(len(X_tests)))
