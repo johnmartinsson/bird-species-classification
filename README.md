@@ -27,11 +27,16 @@ Note that these instructions can __not__ be followed right now, but they are rat
 
 ## Preprocess
 ```bash
-$ tar xf BirdCLEFTestSet.tar.gz
-$ cd test/wav
-$ # Resample to 22050 Hz
+$ # Resample to 22050 Hz (stand in wav directory)
 $ for i in *; do sox $i -r 22050 tmp.wav; mv tmp.wav $i; done
 ```
+
+```bash
+$ python preprocess_birdclef.py --xml_dir=<path-to-xml-dir> \
+                                --wav_dir=<path-to-wav-dir> \
+                                --output_dir=<path-to-output-dir>
+```
+Which will split the wav files into three second segments, and put the signal segments in the respective class directories, and the noise segments in a noise directory.
 
 ## Train
 The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
