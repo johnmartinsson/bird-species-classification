@@ -6,7 +6,9 @@ import numpy as np
 # SEED = 1337
 
 import os
+import ast
 import pickle
+import configparser
 from time import localtime, strftime
 from optparse import OptionParser
 
@@ -29,9 +31,38 @@ class HistoryCollector(keras.callbacks.Callback):
     def on_epoch_end(self, batch, logs={}):
         self.data.append(logs.get(self.name))
 
-def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_classes, nb_epoch,
-                nb_val_samples, samples_per_epoch, input_shape,
-                weight_file_path, history_file_path, first_epoch, lock_file):
+def train_model(config_file, weight_file_path, history_file_path, first_epoch, lock_file):
+
+    config_parser = configparser.ConfigParser()
+    config_parser.read(config_file)
+
+    # model
+    batch_size = int(config_parser['MODEL']['BatchSize'])
+    nb_classes = int(config_parser['MODEL']['NumberOfClasses'])
+    nb_epoch = int(config_parser['MODEL']['NumberOfEpochs'])
+    nb_iterations = int(config_parser['MODEL']['NumberOfIterations'])
+    nb_val_samples = int(config_parser['MODEL']['NumberOfValidationSamplesPerEpoch'])
+    samples_per_epoch = int(config_parser['MODEL']['NumberOfTrainingSamplesPerEpoch'])
+    input_shape = ast.literal_eval(config_parser['MODEL']['InputShape'])
+    model_name = config_parser['MODEL']['ModelName']
+    audio_mode = config_parser['MODEL']['InputDataMode']
+
+    # paths
+    noise_path = config_parser['PATHS']['NoiseDataDir']
+    train_path = config_parser['PATHS']['TrainingDataDir']
+    valid_path = config_parser['PATHS']['ValidationDataDir']
+
+    # training
+    optimizer = config_parser['TRAINING']['Optimizer']
+    learning_rate = float(config_parser['TRAINING']['LearningRate'])
+    decay = float(config_parser['TRAINING']['Decay'])
+    momentum = float(config_parser['TRAINING']['Momentum'])
+    nesterov = config_parser['TRAINING']['Nesterov'] == 'True'
+    loss_function = config_parser['TRAINING']['LossFunction']
+    time_shift = config_parser['TRAINING']['TimeShiftAugmentation'] == 'True'
+    pitch_shift = config_parser['TRAINING']['PitchShiftAugmentation'] == 'True'
+    same_class_augmentation = config_parser['TRAINING']['SameClassAugmentation'] == 'True'
+    noise_augmentation = config_parser['TRAINING']['NoiseAugmentation'] == 'True'
 
     img_rows, img_cols, nb_channels = input_shape
 
@@ -40,13 +71,27 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
 	    model = CubeRun(nb_classes, input_shape)
     elif model_name == 'resnet_18':
             model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
+    elif model_name == 'resnet_34':
+            model = ResNetBuilder.build_resnet_34(input_shape, nb_classes)
+    elif model_name == 'resnet_50':
+            model = ResNetBuilder.build_resnet_50(input_shape, nb_classes)
+    elif model_name == 'resnet_101':
+            model = ResNetBuilder.build_resnet_101(input_shape, nb_classes)
+    elif model_name == 'resnet_152':
+            model = ResNetBuilder.build_resnet_152(input_shape, nb_classes)
     else:
         raise ValueError("Can not find model ", model_name, ".")
 
-    sgd = SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='categorical_crossentropy',
-                  optimizer=sgd,
-                  metrics=['accuracy'])
+    if optimizer == 'sgd':
+        sgd = SGD(lr=learning_rate, decay=decay, momentum=momentum,
+                  nesterov=nesterov)
+        model.compile(loss=loss_function,
+                      optimizer=sgd,
+                      metrics=['accuracy'])
+    else:
+        model.compile(loss=loss_function,
+                      optimizer=optimizer,
+                      metrics=['accuracy'])
 
     if first_epoch=='False':
         # load weights
@@ -60,7 +105,8 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
     validLossHistory = HistoryCollector('val_loss')
     trainAccHistory = HistoryCollector('acc')
     validAccHistory = HistoryCollector('val_acc')
-    checkpoint = keras.callbacks.ModelCheckpoint(weight_file_path,
+    best_weight_file_path = os.path.join(os.path.dirname(weight_file_path), "best_weights.h5")
+    checkpoint = keras.callbacks.ModelCheckpoint(best_weight_file_path,
                                                 monitor='val_acc', verbose=0,
                                                 save_best_only=True,
                                                 save_weights_only=True,
@@ -69,10 +115,10 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
     # train data generator
     train_datagen = SoundDataGenerator(
         rescale=1./255,
-        time_shift=False,
-        pitch_shift=False,
-        augment_with_same_class=False,
-        augment_with_noise=False)
+        time_shift=time_shift,
+        pitch_shift=pitch_shift,
+        augment_with_same_class=same_class_augmentation,
+        augment_with_noise=noise_augmentation)
 
     # validation data generator
     valid_datagen = SoundDataGenerator(
@@ -130,36 +176,17 @@ def train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_c
     return weight_file_path
 
 parser = OptionParser()
-parser.add_option("--train_path", dest="train_path")
-parser.add_option("--valid_path", dest="valid_path")
-parser.add_option("--noise_path", dest="noise_path")
-parser.add_option("--weight_path", dest="weight_path")
+parser.add_option("--config_file", dest="config_file")
 parser.add_option("--history_path", dest="history_path")
+parser.add_option("--weight_path", dest="weight_path")
 parser.add_option("--first_epoch", dest="first_epoch")
 parser.add_option("--lock_file", dest="lock_file")
-parser.add_option("--model_name", dest="model_name")
 
 (options, args) = parser.parse_args()
-
-print("Options:", options)
-
-batch_size = 16
-nb_classes = 20
-nb_epoch   = 6
-nb_val_samples = 613
-samples_per_epoch = 2213
-input_shape = (256, 256, 1)
-audio_mode = 'mfcc'
-
-noise_path = options.noise_path
-train_path = options.train_path
-valid_path = options.valid_path
+config_file = options.config_file
 history_file_path = options.history_path
 weight_file_path = options.weight_path
 first_epoch = options.first_epoch
 lock_file = options.lock_file
-model_name = options.model_name
 
-train_model(model_name, audio_mode, train_path, valid_path, batch_size, nb_classes, nb_epoch,
-            nb_val_samples, samples_per_epoch, input_shape, weight_file_path,
-            history_file_path, first_epoch, lock_file)
+train_model(config_file, weight_file_path, history_file_path, first_epoch, lock_file)

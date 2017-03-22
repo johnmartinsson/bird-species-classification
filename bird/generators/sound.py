@@ -97,7 +97,7 @@ def load_wav_as_mfcc(fname, target_size=None, noise_files=None,
     if augment_with_noise:
         signal = da.noise_augmentation(signal, noise_files)
 
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=128)
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=target_size[0])
 
     if target_size:
         mfcc= scipy.misc.imresize(mfcc, target_size)
@@ -117,19 +117,22 @@ def load_wav_as_mfcc_delta(fname, target_size=None, noise_files=None,
     if augment_with_noise:
         signal = da.noise_augmentation(signal, noise_files)
 
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=128)
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=target_size[0])
     mfcc_delta_3 = librosa.feature.delta(mfcc, width=3, order=1)
     mfcc_delta_11 = librosa.feature.delta(mfcc, width=11, order=1)
     mfcc_delta_19 = librosa.feature.delta(mfcc, width=19, order=1)
+
+    if target_size:
+        mfcc = scipy.misc.imresize(mfcc, target_size)
+        mfcc_delta_3 = scipy.misc.imresize(mfcc_delta_3, target_size)
+        mfcc_delta_11 = scipy.misc.imresize(mfcc_delta_11, target_size)
+        mfcc_delta_19 = scipy.misc.imresize(mfcc_delta_19, target_size)
 
     mfcc = mfcc.reshape(mfcc.shape[0], mfcc.shape[1], 1)
     mfcc_delta_3 = mfcc_delta_3.reshape(mfcc_delta_3.shape[0], mfcc_delta_3.shape[1], 1)
     mfcc_delta_11 = mfcc_delta_11.reshape(mfcc_delta_11.shape[0], mfcc_delta_11.shape[1], 1)
     mfcc_delta_19 = mfcc_delta_19.reshape(mfcc_delta_19.shape[0], mfcc_delta_19.shape[1], 1)
     mfcc_delta = np.concatenate([mfcc, mfcc_delta_3, mfcc_delta_11, mfcc_delta_19], axis=2)
-
-    if target_size:
-        mfcc_delta = scipy.misc.imresize(mfcc_delta, target_size)
 
     return mfcc_delta
 
@@ -151,6 +154,27 @@ def load_wav_as_spectrogram(fname, target_size=None, noise_files=None,
     spectrogram = spectrogram.reshape((spectrogram.shape[0],
                                        spectrogram.shape[1], 1))
     return spectrogram
+
+def load_wav_as_tempogram(fname, target_size=None, noise_files=None,
+                       augment_with_noise=False, class_dir=None):
+    (fs, signal) = utils.read_wave_file(fname)
+
+    if class_dir:
+        signal = da.same_class_augmentation(signal, class_dir)
+
+    if augment_with_noise:
+        signal = da.noise_augmentation(signal, noise_files)
+
+    tempogram = sp.wave_to_tempogram(signal, fs)
+
+    if target_size:
+        tempogram = scipy.misc.imresize(tempogram, target_size)
+
+    tempogram = tempogram.reshape((tempogram.shape[0],
+                                       tempogram.shape[1], 1))
+    return tempogram
+
+
 
 class SoundDataGenerator(object):
     '''Generate minibatches with
@@ -440,9 +464,9 @@ class DirectoryIterator(Iterator):
         print("Loaded ", len(noise_files), " noise segments")
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
-        if audio_mode not in {'spectrogram', 'mfcc', 'mfcc_delta'}:
+        if audio_mode not in {'spectrogram', 'tempogram', 'mfcc', 'mfcc_delta'}:
             raise ValueError('Invalid audio mode:', audio_mode,
-                             '; expected "spectrogram", "mfcc" or "mfcc_delta".')
+                             '; expected "spectrogram", "tempogram", "mfcc" or "mfcc_delta".')
         self.audio_mode = audio_mode
         self.dim_ordering = dim_ordering
         if self.audio_mode == 'mfcc_delta':
@@ -450,7 +474,7 @@ class DirectoryIterator(Iterator):
                 self.image_shape = self.target_size + (4,)
             else:
                 self.image_shape = (4,) + self.target_size
-        elif self.audio_mode == 'mfcc' or self.audio_mode == 'spectrogram':
+        elif self.audio_mode in {'mfcc', 'spectrogram', 'tempogram'}:
             if self.dim_ordering == 'tf':
                 self.image_shape = self.target_size + (1,)
             else:
@@ -523,6 +547,12 @@ class DirectoryIterator(Iterator):
 
             if self.audio_mode == 'spectrogram':
                 x = load_wav_as_spectrogram(os.path.join(self.directory, fname),
+                                       target_size=self.target_size,
+                                       noise_files=self.noise_files,
+                                       augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)
+
+            elif self.audio_mode == 'tempogram':
+                x = load_wav_as_tempogram(os.path.join(self.directory, fname),
                                        target_size=self.target_size,
                                        noise_files=self.noise_files,
                                        augment_with_noise=self.image_data_generator.augment_with_noise, class_dir=class_dir)

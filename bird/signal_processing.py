@@ -38,3 +38,6 @@ def wave_to_sample_spectrogram(wave, fs):
     # Han window of size 512, and hop size 128 (75% overlap)
     return wave_to_log_amplitude_spectrogram(wave, fs)
 
+def wave_to_tempogram(wave, fs):
+    tempogram = librosa.feature.tempogram(wave, fs)
+    return tempogram
