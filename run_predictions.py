@@ -24,12 +24,17 @@ def average_prediction(model, X_tests):
 def main():
     parser = OptionParser()
     parser.add_option("--experiment_path", dest="experiment_path")
+    parser.add_option("--test_data", dest="test_data")
     (options, args) = parser.parse_args()
 
     config_parser = configparser.ConfigParser()
     config_parser.read(os.path.join(options.experiment_path, "conf.ini"))
 
-    validation_dir = config_parser['PATHS']['ValidationDataDir']
+    validation_dir = ""
+    if not options.test_data:
+        validation_dir = config_parser['PATHS']['ValidationDataDir']
+    else:
+        validation_dir = options.test_data
 
     model_name = config_parser['MODEL']['ModelName']
     weight_path = os.path.join(options.experiment_path, "weights.h5")
