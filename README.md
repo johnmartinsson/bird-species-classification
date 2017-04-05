@@ -16,10 +16,6 @@ $ source venv/bin/activate
 
 # Install tensorflow
 (venv)$ pip3 install --upgrade $TF_BINARY_URL
-
-# Install latest metrics (including F-score)
-(venv)$ wget https://raw.githubusercontent.com/fchollet/keras/master/keras/metrics.py
-(venv)$ cp metrics.py venv/lib/python3.5/site-packages/keras
 ```
 
 # Usage Instructions
