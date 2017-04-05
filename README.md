@@ -1,5 +1,5 @@
 # Bird Species Classification
-Using convolutional neural networks to build and train a bird species classifier on bird song data with corresponding species labels.
+This is the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project is to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
 
 ## Setup
 ```bash
@@ -22,7 +22,7 @@ $ source venv/bin/activate
 (venv)$ cp metrics.py venv/lib/python3.5/site-packages/keras
 ```
 
-# Usage Instriction
+# Usage Instructions
 Note that these instructions can __not__ be followed right now, but they are rather here as a guidline of an interface that could be implemented.
 
 ## Preprocess
@@ -64,6 +64,8 @@ $ python run_predictions.py --experiment_path=<path-to-experiment>
 ```bash
 $ python evaluate.py --experiment_path=<path-to-results>
 ```
+# Models
+In this project two different models have been used: a reimplementation of Elias Sprengels [winning solution](http://ceur-ws.org/Vol-1609/16090547.pdf) for the BirdCLEF 2016 challenge, and a Keras implementation of the [deep residual neural network](https://github.com/raghakot/keras-resnet/blob/master/resnet.py).
 
 # Libraries
 The following libraries are used in this method:
