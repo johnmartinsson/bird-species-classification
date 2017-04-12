@@ -2,7 +2,7 @@
 This is the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project is to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
 
 - [Master's Thesis]() (TODO: Add link when published)
-- [Presentation](http://slides.com/johnmartinsson/bird-species-identification-using-convolutional-neural-networks#/) (NOTE: Not finished)
+- [Presentation](http://johnmartinsson.github.io/thesis-presentation) (NOTE: Not finished)
 
 ## Setup
 ```bash
