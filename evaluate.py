@@ -82,9 +82,9 @@ def build_file_to_elevation(xml_roots):
 
     return file_to_elevation
 
-def compute_elevation_scores(training_segments):
-    xml_dir = "./datasets/birdClef2016/xml/"
-    train_dir = "./datasets/birdClef2016Whole1/train/"
+def compute_elevation_scores(training_segments, xml_dir, train_dir):
+    # xml_dir = "./datasets/birdClef2016/xml/"
+    # train_dir = "./datasets/birdClef2016Whole1/train/"
 
     xml_roots = data_analysis.load_xml_roots(xml_dir)
     elevation_to_probability = data_analysis.build_elevation_distributions(xml_roots, train_dir)
@@ -105,7 +105,7 @@ def compute_elevation_scores(training_segments):
         elevation = file_to_elevation[tf]
         for i in range(nb_classes):
             if elevation == -1:
-                elevation_score[i] = 1/nb_classes
+                elevation_score[i] = 1/5000
             else:
                 f = elevation_to_probability[i]
                 elevation_score[i] = f(elevation)
@@ -113,24 +113,27 @@ def compute_elevation_scores(training_segments):
 
     return np.array(elevation_scores)
 
-def combine(e_s, y_s):
-    c = e_s * y_s
-    c = c / np.sum(c)
-    return c
-
-def evaluate(experiment_path):
+def evaluate(experiment_path, meta_data=False, xml_dir="", train_dir="",
+             submission_file=""):
     pickle_path = os.path.join(experiment_path, "predictions.pkl")
     with open(pickle_path, 'rb') as input:
         y_trues = pickle.load(input)
         y_scores = pickle.load(input)
         training_segments = pickle.load(input)
 
-    elevation_scores = compute_elevation_scores(training_segments)
+    if meta_data:
+        elevation_scores = compute_elevation_scores(training_segments, xml_dir,
+                                                   train_dir)
 
-    ## Combine the scores using Bayes Thm.
-    normalize = np.array([np.sum(y_s * e_s) for y_s, e_s in zip(y_scores,
+        ## Combine the scores using Bayes Thm.
+        normalize = np.array([np.sum(y_s * e_s) for y_s, e_s in zip(y_scores,
                                                                 elevation_scores)])
-    y_scores = y_scores * elevation_scores / normalize[:, None]
+        y_scores = y_scores * elevation_scores / normalize[:, None]
+
+    if submission_file:
+        write_to_submission_file(submission_file, y_scores, training_segments,
+                                 train_dir)
+        return
 
     map_score = mean_average_precision(y_trues, y_scores)
     auroc_score = area_under_roc_curve(y_trues, y_scores)
@@ -161,8 +164,32 @@ def evaluate(experiment_path):
         "auroc":auroc_score,
         "coverage_error":coverage_error,
         "lrap":lrap,
-        "ranking_loss": ranking_loss
-    }, y_scores
+        "ranking_loss": ranking_loss,
+        "top_1":top_n(y_trues, y_scores, 1),
+        "top_5":top_n(y_trues, y_scores, 5),
+    }
+
+def write_to_submission_file(submission_file, y_scores, training_segments,
+                             training_dir):
+    index_to_species = loader.build_class_index(training_dir)
+    def get_media_id(training_segments):
+        training_file = data_analysis.segments_to_training_files(training_segments)
+        if len(training_file) > 1:
+            raise ValueError("something is wrong")
+        basename = utils.get_basename_without_ext(training_file[0])
+        xs = basename.split("_")
+        media_id = xs[len(xs)-1][2:]
+        return media_id
+
+    with open(submission_file, 'w') as output:
+        for (score, segments) in zip(y_scores, training_segments):
+            media_id = get_media_id(segments)
+            for (i, s) in enumerate(score):
+            # s = np.max(score)
+            # i = np.argmax(score)
+                class_id = index_to_species[i]
+                output.write("{};{};{}\n".format(str(media_id), str(class_id),
+                                                 str(s)))
 
 def summary(evaluations):
     def f(key, evaluations):
@@ -183,73 +210,3 @@ def main():
 
 if __name__ == "main()":
     main()
-
-# def evaluate(model, data_filepath):
-    # print("Running new...")
-    # stats = {}
-
-
-    # (X_tests, Y_tests, index_to_species) = loader.load_test_data_birdclef(data_filepath,
-                                                                          # input_shape)
-    # # init all species
-    # for i in range(nb_classes):
-        # stats[index_to_species[i]] = {
-            # "correct" : 0,
-            # "incorrect" : 0
-        # }
-
-    # for species in os.listdir(train):
-        # nb_valid = len(loader.group_segments(glob.glob(os.path.join(validation, species, "*.wav"))))
-        # nb_train = len(loader.group_segments(glob.glob(os.path.join(train, species, "*.wav"))))
-        # stats[species]["validation_samples"] = nb_valid
-        # stats[species]["training_samples"] = nb_train
-        # stats[species]["confusion"] = {}
-
-    # y_scores = []
-    # y_trues = Y_tests
-    # progress = tqdm.tqdm(range(len(X_tests)))
-    # for X_test, Y_test, p in zip(X_tests, Y_tests, progress):
-        # y_score = average_prediction(model, X_test)
-        # y_scores.append(y_score)
-
-        # y_pred = np.argmax(y_score)
-        # y_preds = np.argsort(y_score)[::-1]
-        # y_true = Y_test
-        # y_true_cat = np.argmax(y_true)
-
-        # if y_pred == y_true_cat:
-            # stats[index_to_species[y_true_cat]]["correct"] += 1
-        # else:
-            # stats[index_to_species[y_true_cat]]["incorrect"] += 1
-
-        # if not index_to_species[y_pred] in stats[index_to_species[y_true_cat]]["confusion"]:
-            # stats[index_to_species[y_true_cat]]["confusion"][index_to_species[y_pred]] = 1
-        # else:
-            # stats[index_to_species[y_true_cat]]["confusion"][index_to_species[y_pred]] += 1
-
-    # map_score = mean_average_precision(y_trues, y_scores)
-    # auroc_score = area_under_roc_curve(y_trues, y_scores)
-
-    # print("")
-    # print("- Top 1:", top_n(y_trues, y_scores, 1))
-    # print("- Top 2:", top_n(y_trues, y_scores, 2))
-    # print("- Top 3:", top_n(y_trues, y_scores, 3))
-    # print("- Top 4:", top_n(y_trues, y_scores, 4))
-    # print("- Top 5:", top_n(y_trues, y_scores, 5))
-    # print("")
-    # print("Mean Average Precision: ", map_score)
-    # print("Area Under Curve: ", auroc_score)
-    # print("Total predictions: ", len(X_tests))
-
-    # with open(os.path.join(options.experiment_path, "evaluate.pkl"), "wb") as output:
-        # pickle.dump(stats, output, pickle.HIGHEST_PROTOCOL)
-
-# if model_name == "cuberun":
-    # model = CubeRun(nb_classes, input_shape)
-# elif model_name == "resnet_18":
-    # model = ResNetBuilder.build_resnet_18(input_shape, nb_classes)
-# elif model_name == "resnet_50":
-    # model = ResNet50(True, None, None, input_shape, nb_classes)
-# model.load_weights(weight_path)
-# model.compile(loss="categorical_crossentropy", optimizer="adadelta")
-# evaluate(model, validation)
