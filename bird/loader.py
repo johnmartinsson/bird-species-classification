@@ -36,6 +36,7 @@ def load_test_data_birdclef(directory, target_size, input_data_mode):
         # load sound data
         class_segments = glob.glob(os.path.join(subpath, "*.wav"))
         # print(subdir+": ", len(class_segments))
+        print("group segments ... ")
         samples = group_segments(class_segments)
         for sample in samples:
             training_files.append(sample)
@@ -59,6 +60,7 @@ def build_class_index(directory):
 
 
 def load_segments(segments, target_size, input_data_mode):
+    print(segments, target_size, input_data_mode)
     data = []
     for segment in segments:
         (fs, signal) = utils.read_wave_file(segment)

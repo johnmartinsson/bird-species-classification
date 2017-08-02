@@ -1,3 +1,6 @@
+""" This is a reimplementation of the work of Elias Sprengel
+(http://ceur-ws.org/Vol-1609/16090547.pdf).
+"""
 from keras.layers import Input
 from keras.layers import Dense, Activation, Dropout, Flatten
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
