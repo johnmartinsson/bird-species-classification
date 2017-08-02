@@ -2,9 +2,6 @@ import scipy
 import numpy as np
 import mock
 import sys
-sys.modules.update((mod_name, mock.Mock()) for mod_name in ['matplotlib',
-                                                            'matplotlib.pyplot',
-                                                            'matplotlib.image'])
 import librosa
 
 def stft(x, fs, framesz, hop):
