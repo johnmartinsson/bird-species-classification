@@ -1,5 +1,8 @@
 # Bird Species Classification
-Using convolutional neural networks to build and train a bird species classifier on bird song data with corresponding species labels.
+These are the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project is to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
+
+- [Master's Thesis](http://publications.lib.chalmers.se/records/fulltext/249467/249467.pdf)
+- [Presentation](http://johnmartinsson.github.io/thesis-presentation)
 
 ## Setup
 ```bash
@@ -16,34 +19,52 @@ $ source venv/bin/activate
 
 # Install tensorflow
 (venv)$ pip3 install --upgrade $TF_BINARY_URL
-
-# Install latest metrics (including F-score)
-(venv)$ wget https://raw.githubusercontent.com/fchollet/keras/master/keras/metrics.py
-(venv)$ cp metrics.py venv/lib/python3.5/site-packages/keras
 ```
 
-# Usage Instriction
-Note that these instructions can __not__ be followed right now, but they are rather here as a guidline of an interface that could be implemented.
+# Usage Instructions
+Below are some usage instructions for how to use the training files, and how to structure the data set.
 
 ## Preprocess
+Firstly, the recordings need to be down sampled.
+
 ```bash
 $ # Resample to 22050 Hz (stand in wav directory)
 $ for i in *; do sox $i -r 22050 tmp.wav; mv tmp.wav $i; done
 ```
 
+Secondly, the signal parts, and the noise parts of the recordings are extracted and split into three second segments. The signal segments are put in different directories depending on the class given in the xml data, and all nosie segments are put in a separate nosie directory.
 ```bash
 $ python preprocess_birdclef.py --xml_dir=<path-to-xml-dir> \
                                 --wav_dir=<path-to-wav-dir> \
                                 --output_dir=<path-to-output-dir>
 ```
-Which will split the wav files into three second segments, and put the signal segments in the respective class directories, and the noise segments in a noise directory.
+
+Lastly, the data is split into a training set and a validation set:
+
+```bash
+$ python create_dataset.py --src_dir=<path-to-signal-dir> \
+                           --dst_dir=<path-to-destination-dir> \
+                           --subset_size=<subset-size> \
+                           --valid_percentage=<validation-percentage>
+```
+where src points to the signal segments, dst is the destination, subset size is an optional argument which makes training and validation data a randomly chosen subset of the whole data set, and the valid percentage is how many percent the validation data should make up.
 
 ## Train
-The training, and validation data folders should contain the sound files, and a csv file which maps the name of a sound file to a set of ground truth labels.
+```bash
+$ python train.py --config_file=conf.ini
+```
 
 ## Run Predictions
+```bash
+$ python run_predictions.py --experiment_path=<path-to-experiment>
+```
 
-## Evaluate
+## Evaluation
+```bash
+$ python evaluate.py --experiment_path=<path-to-results>
+```
+# Models
+In this project two different models have been used: a reimplementation of Elias Sprengels [winning solution](http://ceur-ws.org/Vol-1609/16090547.pdf) for the BirdCLEF 2016 challenge, and a Keras implementation of the [deep residual neural network](https://github.com/raghakot/keras-resnet/blob/master/resnet.py).
 
 # Libraries
 The following libraries are used in this method:
@@ -55,6 +76,9 @@ The following libraries are used in this method:
 
 # Evaluation Methods
 - [Mean Average Precision](https://github.com/benhamner/Metrics/blob/master/Python/ml_metrics/average_precision.py)
+- [Coverage Error](http://scikit-learn.org/stable/modules/model_evaluation.html#coverage-error)
+- [Label Ranking Average Precision](http://scikit-learn.org/stable/modules/model_evaluation.html#label-ranking-average-precision)
+- [AUROC](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score)
 
 # Challenges
 This is a collection of bird species classification challenges that, has been, and is carried out around the world.
