@@ -24,9 +24,22 @@ def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
         nothing, simply saves the preprocessed sound segments
     """
 
-    samplerate, wave = utils.read_wave_file(filename)
+    samplerate, wave = utils.read_wave_file_not_normalized(filename)
+
+    if len(wave) == 0:
+        print("An empty sound file..")
+        wave = np.zeros(samplerate * segment_size_seconds, dtype=np.int16)
+
     signal_wave, noise_wave = preprocess_wave(wave, samplerate)
+
+    if signal_wave.shape[0] == 0:
+        signal_wave = np.zeros(samplerate * segment_size_seconds, dtype=np.int16)
+
     basename = utils.get_basename_without_ext(filename)
+
+    # print(filename)
+    # print(class_dir)
+    # print(noise_dir)
 
     if signal_wave.shape[0] > 0:
         signal_segments = split_into_segments(signal_wave, samplerate, segment_size_seconds)
@@ -36,9 +49,11 @@ def preprocess_sound_file(filename, class_dir, noise_dir, segment_size_seconds):
         save_segments_to_file(noise_dir, noise_segments, basename, samplerate)
 
 def save_segments_to_file(output_dir, segments, basename, samplerate):
+    # print("save segments ({}) to file".format(str(len(segments))))
     i_segment = 0
     for segment in segments:
         segment_filepath = os.path.join(output_dir, basename + "_seg_" + str(i_segment) + ".wav")
+        # print("save segment: {}".format(segment_filepath))
         utils.write_wave_to_file(segment_filepath, samplerate, segment)
         i_segment += 1
 
@@ -46,6 +61,7 @@ def split_into_segments(wave, samplerate, segment_time):
     """ Split a wave into segments of segment_size. Repeat signal to get equal
     length segments.
     """
+    # print("split into segments")
     segment_size = samplerate * segment_time
     wave_size = wave.shape[0]
 
