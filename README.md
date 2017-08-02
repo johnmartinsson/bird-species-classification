@@ -19,8 +19,6 @@ $ source venv/bin/activate
 ```
 
 # Usage Instructions
-DISCLAIMER: I realized that the code for the last month of my thesis work had not been pushed. The code has now been pushed and I will try to tidy up this section so that it can be used to reproduce my results.
-
 This section explains how to preprocess the birdCLEF2016 dataset, how to split the data set in to a training and validation set, how to train a model on the training data, and how to evaluate the model on the valuation data.
 
 ## Preprocess
