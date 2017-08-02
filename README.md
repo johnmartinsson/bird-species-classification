@@ -1,5 +1,5 @@
 # Bird Species Classification
-These are the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project is to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
+These are the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project was to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
 
 - [Master's Thesis](http://publications.lib.chalmers.se/records/fulltext/249467/249467.pdf)
 - [Presentation](http://johnmartinsson.github.io/thesis-presentation)
@@ -19,10 +19,12 @@ $ source venv/bin/activate
 ```
 
 # Usage Instructions
-Below are some usage instructions for how to use the training files, and how to structure the data set.
+DISCLAIMER: I realized that the code for the last month of my thesis work had not been pushed. The code has now been pushed and I will try to tidy up this section so that it can be used to reproduce my results.
+
+This section explains how to preprocess the birdCLEF2016 dataset, how to split the data set in to a training and validation set, how to train a model on the training data, and how to evaluate the model on the valuation data.
 
 ## Preprocess
-Firstly, the recordings need to be down sampled.
+First we need to down-sample the sound recordings.
 
 ```bash
 $ # Resample to 22050 Hz (stand in wav directory)
@@ -44,7 +46,7 @@ $ python create_dataset.py --src_dir=<path-to-signal-dir> \
                            --subset_size=<subset-size> \
                            --valid_percentage=<validation-percentage>
 ```
-where src points to the signal segments, dst is the destination, subset size is an optional argument which makes training and validation data a randomly chosen subset of the whole data set, and the valid percentage is how many percent the validation data should make up.
+where src points to the signal segments, dst is the destination, subset size is an optional argument which makes training and validation data a randomly chosen subset of bird species from the whole data set, and the valid percentage is how many percent of the data that should be in the validation set.
 
 ## Train
 ```bash
@@ -78,7 +80,7 @@ The following libraries are used in this method:
 - [AUROC](http://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html#sklearn.metrics.roc_auc_score)
 
 # Challenges
-This is a collection of bird species classification challenges that, has been, and is carried out around the world.
+This is a collection of bird species classification challenges that, has been, and are carried out around the world.
 
 ## BirdCLEF: an audio record-based bird identification task
 - [BirdCLEF 2016](http://www.imageclef.org/lifeclef/2016/bird)
