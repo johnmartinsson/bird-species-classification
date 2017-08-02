@@ -7,18 +7,15 @@ These are the project files for a master's thesis carried out at Chalmers Univer
 ## Setup
 ```bash
 $ git clone https://github.com/johnmartinsson/bird-species-classification
-$ virtualenv -p /usr/bin/python3.5 venv
+$ virtualenv -p /usr/bin/python3.6 venv
 $ source venv/bin/activate
 (venv)$ pip install -r requirements.txt
 
-# Ubuntu/Linux 64-bit, CPU only, Python 3.5
-(venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0-cp35-cp35m-linux_x86_64.whl
-# Ubuntu/Linux 64-bit, GPU enabled, Python 3.5
+# Ubuntu/Linux 64-bit, CPU only, Python 3.6
+(venv)$ pip install --upgrade tensorflow
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.6
 # Requires CUDA toolkit 8.0 and CuDNN v5. For other versions, see "Install from sources" below.
-(venv)$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.11.0-cp35-cp35m-linux_x86_64.whl
-
-# Install tensorflow
-(venv)$ pip3 install --upgrade $TF_BINARY_URL
+(venv)$ pip install --upgrade tensorflow-gpu
 ```
 
 # Usage Instructions
