@@ -128,18 +128,26 @@ def build_elevation_distributions(xml_roots, train_dir):
             else:
                 elevation_observations[class_id] = [int(elevation)]
 
-    def gpd(mu, sigma):
-        return lambda x: norm.pdf(x, mu, sigma)
+    def gpd(mu, sigma, max_elevation, nb_observations):
+        weight = 1
+        if nb_observations < 10:
+            weight = 1
+        else:
+            weight = 1/nb_observations
 
+        return lambda x: ((1-weight) * norm.pdf(x, mu, sigma) + weight * (1/max_elevation))/2
+
+    max_elevation = 5000
     elevation_to_probability = {}
     for class_id, elevations in elevation_observations.items():
         # print(class_id, elevations)
         mu = numpy.mean(elevations)
         sigma = numpy.std(elevations)
         if sigma == 0.0:
-            elevation_to_probability[class_id] = lambda x: 1/nb_classes
+            elevation_to_probability[class_id] = lambda x: 1/max_elevation
         else:
-            elevation_to_probability[class_id] = gpd(mu, sigma)
+            elevation_to_probability[class_id] = gpd(mu, sigma, max_elevation,
+                                                     len(elevations))
 
         # if species_to_index[class_id] == 806:
             # print("index:", species_to_index[class_id], "mean:", mu, "std:", sigma)
