@@ -36,7 +36,9 @@ history_file_path = os.path.join(basename, "history.pkl")
 tmp_history_file_path = os.path.join(basename, "history_tmp.pkl")
 lock_file  = os.path.join(basename, "file.lock")
 
-# Arguments
+# This was designed to run in a queue system. If this is not what you want to do
+# simply comment out the five first elements in the qsub_args list, and just run
+# the script directly on the GPU/CPU.
 qsub_args = [
     "qsub",
     "-cwd",
