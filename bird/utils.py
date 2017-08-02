@@ -77,6 +77,32 @@ def read_wave_file(filename):
 
     return fs, x
 
+def read_wave_file_not_normalized(filename):
+    """ Read a wave file from disk
+    # Arguments
+        filename : the name of the wave file
+    # Returns
+        (fs, x)  : (sampling frequency, signal)
+    """
+    if (not os.path.isfile(filename)):
+        raise ValueError("File does not exist")
+
+    s = wave.open(filename, 'rb')
+
+    if (s.getnchannels() != 1):
+        raise ValueError("Wave file should be mono")
+    # if (s.getframerate() != 22050):
+        # raise ValueError("Sampling rate of wave file should be 16000")
+
+    strsig = s.readframes(s.getnframes())
+    x = np.fromstring(strsig, np.short)
+    fs = s.getframerate()
+    s.close()
+
+    return fs, x
+
+
+
 def copy_subset(root_dir, classes, subset_dir):
     # create directories
     if not os.path.exists(subset_dir):
