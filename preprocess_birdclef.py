@@ -9,14 +9,22 @@ import shutil
 import tqdm
 from bird import preprocessing as pp
 
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("--xml_dir", dest="xml_dir")
+parser.add_option("--wav_dir", dest="wav_dir")
+parser.add_option("--is_testset", dest="is_testset")
+parser.add_option("--output_dir", dest="output_dir")
+(options, args) = parser.parse_args()
 
 # Settings
 segment_size_seconds = 3
 
 # Paths
-xml_paths = glob.glob("datasets/birdClef2016/xml/*.xml")
-source_dir = "./datasets/birdClef2016/wav"
-preprocessed_dir = "./datasets/birdClef2016Whole"
+xml_paths = glob.glob(os.path.join(options.xml_dir, "*.xml"))
+source_dir = options.wav_dir
+preprocessed_dir = options.output_dir
 noise_dir = os.path.join(preprocessed_dir, "noise")
 
 print("Loading xml roots... ")
@@ -32,18 +40,21 @@ if not os.path.exists(noise_dir):
     os.makedirs(noise_dir)
 
 print("Preprocessing random species subset...")
-progress = tqdm.tqdm(range(len(xml_paths)))
-for (p, r) in zip(progress, xml_paths):
-    species = r.find("ClassId").text
+progress = tqdm.tqdm(range(len(xml_roots)))
+for (p, r) in zip(progress, xml_roots):
+    species = ""
+    if not options.is_testset:
+        species = r.find("ClassId").text
     filename = r.find("FileName").text
     filepath = os.path.join(source_dir, filename)
 
-    class_dir = os.path.join(preprocessed_dir, "train", species)
+    class_dir = os.path.join(preprocessed_dir, "signal", species)
 
     if not os.path.exists(class_dir):
         os.makedirs(class_dir)
 
     # preprocess the sound file, and save signal to class_dir, noise to
     # noise_dir with specified segment size
+    # print("Preprocess: {}".format(filepath))
     pp.preprocess_sound_file(filepath, class_dir, noise_dir,
                              segment_size_seconds)

@@ -20,7 +20,6 @@ parser = optparse.OptionParser()
 parser.add_option("--src_dir", dest="src_dir")
 parser.add_option("--dst_dir", dest="dst_dir")
 parser.add_option("--subset_size", dest="subset_size")
-parser.add_option("--dry_run", dest="dry_run")
 parser.add_option("--valid_percentage", dest="valid_percentage")
 (options, args) = parser.parse_args()
 
