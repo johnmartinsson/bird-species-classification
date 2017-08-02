@@ -51,11 +51,13 @@ def main():
     model.load_weights(weight_path)
     model.compile(loss="categorical_crossentropy", optimizer="adadelta")
 
+    print("loading test data ... ")
     (X_tests, Y_tests, training_files) = loader.load_test_data_birdclef(validation_dir,
                                                                           input_shape, input_data_mode)
     y_scores = []
     y_trues = Y_tests
     progress = tqdm.tqdm(range(len(X_tests)))
+    print("running predictions ... ")
     for X_test, Y_test, p in zip(X_tests, Y_tests, progress):
         y_score = average_prediction(model, X_test)
         y_scores.append(y_score)
