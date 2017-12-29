@@ -108,7 +108,7 @@ Original compilation source: [xuewei4d](https://github.com/xuewei4d/KaggleSoluti
 - [Solution thread](https://www.kaggle.com/c/mlsp-2013-birds/forums/t/5457/congratulations-to-the-winners).
 
 # Applications
-This is a collection of applications which use this technology.
+This is a collection of applications which solve a similar problem.
 
 ## Warbler
 - [Warbler](https://warblr.net/).
