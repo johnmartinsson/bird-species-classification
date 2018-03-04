@@ -22,7 +22,7 @@ $ source venv/bin/activate
 ```
 
 # Usage Instructions
-This section explains how to preprocess the birdCLEF2016 dataset, how to split the data set in to a training and validation set, how to train a model on the training data, and how to evaluate the model on the valuation data.
+This section explains how to preprocess the birdCLEF2016 dataset, how to split the data set in to a training and validation set, how to train a model on the training data, and how to evaluate the model on the validation data.
 
 ## Preprocess
 First we need to down-sample the sound recordings.
