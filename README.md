@@ -32,7 +32,7 @@ $ # Resample to 22050 Hz (stand in wav directory)
 $ for i in *; do sox $i -r 22050 tmp.wav; mv tmp.wav $i; done
 ```
 
-Secondly, the signal parts, and the noise parts of the recordings are extracted and split into three second segments. The signal segments are put in different directories depending on the class given in the xml data, and all nosie segments are put in a separate nosie directory.
+Secondly, the signal parts, and the noise parts of the recordings are extracted and split into three second segments. The signal segments are put in different directories depending on the class given in the xml data, and all noise segments are put in a separate noise directory.
 ```bash
 $ python preprocess_birdclef.py --xml_dir=<path-to-xml-dir> \
                                 --wav_dir=<path-to-wav-dir> \
