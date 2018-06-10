@@ -40,11 +40,11 @@ lock_file  = os.path.join(basename, "file.lock")
 # simply comment out the five first elements in the qsub_args list, and just run
 # the script directly on the GPU/CPU.
 qsub_args = [
-    "qsub",
-    "-cwd",
-    "-l", "gpu=1",
-    "-e", os.path.join(basename, "stderr.error"),
-    "-o", os.path.join(basename, "stdout.log"),
+    # "qsub",
+    # "-cwd",
+    # "-l", "gpu=1",
+    # "-e", os.path.join(basename, "stderr.error"),
+    # "-o", os.path.join(basename, "stdout.log"),
     "./run_job.sh",
     weight_file_path,
     tmp_history_file_path,
