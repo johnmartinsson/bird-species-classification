@@ -7,6 +7,8 @@ These are the project files for a master's thesis carried out at Chalmers Univer
 - [Master's Thesis](http://publications.lib.chalmers.se/records/fulltext/249467/249467.pdf)
 - [Presentation](http://johnmartinsson.github.io/thesis-presentation)
 
+Please cite the master's thesis if this repository is useful for your research.
+
 ## Setup
 ```bash
 $ git clone https://github.com/johnmartinsson/bird-species-classification
