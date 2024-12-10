@@ -1,3 +1,19 @@
+# Bird Species Identification using Convolutional Neural Networks
+The official implementation of the code for the master's thesis "Bird Species Identification using Convolutional Neural Networks".
+
+[Thesis](https://johnmartinsson.org/publications/2017/bird-species-identification)
+
+Cite as:
+
+  @techreport{Martinsson2017,
+    author = {Martinsson, John},
+    title = {Bird Species Identification using Convolutional Neural Networks},
+    institution = {Chalmers University of Technology},
+    year = {2017},
+    pages = {68},
+    url = {http://publications.lib.chalmers.se/records/fulltext/249467/249467.pdf}
+  }
+
 # DISCLAIMER
 This repository is not actively maintained. It is the result of a master's thesis and the code has been made available as a reference if anyone would like to reproduce the results of the thesis.
 
