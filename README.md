@@ -4,7 +4,7 @@ This repository is not actively maintained. It is the result of a master's thesi
 # Bird Species Classification
 These are the project files for a master's thesis carried out at Chalmers University of Technology. The aim of the project was to improve upon a state-of-the-art bird species classifier by using deep residual neural networks, multiple-width frequency-delta data augmentation, and meta-data fusion to build and train a bird species classifier on bird song data with corresponding species labels.
 
-- [Master's Thesis](http://publications.lib.chalmers.se/records/fulltext/249467/249467.pdf)
+- [Master's Thesis](https://johnmartinsson.org/publications/2017/bird-species-identification)
 - [Presentation](http://johnmartinsson.github.io/thesis-presentation)
 
 Please cite the master's thesis if this repository is useful for your research.
